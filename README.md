@@ -51,6 +51,7 @@ Keep `SUPABASE_SERVICE_ROLE_KEY` and `TICKET_TAILOR_API_KEY` server-only. Never 
 ```bash
 npm run lint && npm run typecheck && npm test   # app
 npm run test:db                                  # schema + security rules on a throwaway local Postgres (run as a non-root user)
+npm run test:live                                # whole flow against the real Supabase project with throwaway users, cleaned up after
 ```
 
 CI runs all of these on every PR.

@@ -68,7 +68,7 @@ export default async function ChatPage({ params }: PageProps<"/chats/[id]">) {
     const l = confirmed[0]!;
     view = {
       kind: "done",
-      names: [nameOf(l.proposer_id), nameOf(l.partner_id)].map((n) => (n === "You" ? "You" : n)),
+      names: [nameOf(l.proposer_id), nameOf(l.partner_id)].sort((a, b) => Number(b === "You") - Number(a === "You")),
       cutoff: conv.event.name_change_cutoff,
       ticketUrl: conv.event.ticket_url,
       isHolder: l.proposer_id === user.id,

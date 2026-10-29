@@ -1,6 +1,7 @@
 "use client";
 import { useActionState, useState } from "react";
 import { FormMessage } from "@/components/FormMessage";
+import { ActionForm } from "@/components/ActionForm";
 import { SubmitButton } from "@/components/SubmitButton";
 import { TicketFlag } from "@/components/TicketFlag";
 import { categoryLabel } from "@/lib/format";
@@ -26,7 +27,7 @@ export function EntryForm({
   const days = [...new Set(categories.map((c) => c.race_day).filter(Boolean))] as string[];
 
   return (
-    <form action={action} className="space-y-6">
+    <ActionForm action={action} className="space-y-6">
       <input type="hidden" name="event_id" value={eventId} />
       <input type="hidden" name="welcome" value={welcome ? "1" : "0"} />
 
@@ -187,6 +188,6 @@ export function EntryForm({
           <SubmitButton>{welcome ? "Save and start browsing" : "Save listing"}</SubmitButton>
         </>
       )}
-    </form>
+    </ActionForm>
   );
 }

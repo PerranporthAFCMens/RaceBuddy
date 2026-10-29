@@ -1,6 +1,7 @@
 "use client";
 import { useActionState } from "react";
 import { FormMessage } from "@/components/FormMessage";
+import { ActionForm } from "@/components/ActionForm";
 import { SubmitButton } from "@/components/SubmitButton";
 import { sendRequest } from "./actions";
 
@@ -8,7 +9,7 @@ export function RequestForm({ entryId, isTeam, firstName }: { entryId: string; i
   const [state, action] = useActionState(sendRequest, undefined);
   if (state?.ok) return <FormMessage state={state} />;
   return (
-    <form action={action} className="space-y-3">
+    <ActionForm action={action} className="space-y-3">
       <input type="hidden" name="entry_id" value={entryId} />
       <label className="block">
         <span className="field-label">Add a note (optional)</span>
@@ -21,6 +22,6 @@ export function RequestForm({ entryId, isTeam, firstName }: { entryId: string; i
       </label>
       <FormMessage state={state} />
       <SubmitButton pendingText="Sending…">{isTeam ? "Ask to join the team" : "Partner up"}</SubmitButton>
-    </form>
+    </ActionForm>
   );
 }

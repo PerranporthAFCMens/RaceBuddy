@@ -1,3 +1,5 @@
+import { supabaseBaseUrl } from "./supabase/url.ts";
+
 /** "22:40" or "22.40" or "1360" (seconds) -> seconds. Returns null if empty, NaN if unreadable. */
 export function parseRaceTime(input: string | null | undefined): number | null {
   const value = (input ?? "").trim();
@@ -56,7 +58,7 @@ export function photoUrl(path: string | null | undefined): string | null {
   if (!path) return null;
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!base) return null;
-  return `${base}/storage/v1/object/public/avatars/${path}`;
+  return `${supabaseBaseUrl(base)}/storage/v1/object/public/avatars/${path}`;
 }
 
 export const REGIONS = [
