@@ -1,0 +1,100 @@
+/* Generated from src/design/tokens.ts by `npm run tokens`. Do not edit by hand. */
+
+:root {
+  --bg: #000000;
+  --panel: #111111;
+  --soft: #1a1a1a;
+  --edge: #4d4d4d;
+  --line: #808080;
+  --muted: #a6a6a6;
+  --hint: #8c8c8c;
+  --fg: #ffffff;
+  --accent: #c09b2f;
+  --accent-ink: #000000;
+  --ok: #5fb36a;
+  --danger: #e5484d;
+  --focus-ring: 2px solid var(--accent);
+  --focus-offset: 2px;
+  color-scheme: dark;
+}
+
+/*
+ * Tailwind theme. The `initial` lines remove Tailwind's default palette,
+ * shadows, radii and type scale, so only brand tokens generate classes.
+ */
+@theme inline {
+  --color-*: initial;
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-soft: var(--soft);
+  --color-edge: var(--edge);
+  --color-line: var(--line);
+  --color-muted: var(--muted);
+  --color-hint: var(--hint);
+  --color-fg: var(--fg);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-ok: var(--ok);
+  --color-danger: var(--danger);
+
+  --font-*: initial;
+  --font-sans: var(--font-open-sans), "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-anton), Impact, "Arial Narrow Bold", sans-serif;
+
+  --text-*: initial;
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 1;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 1;
+
+  --font-weight-*: initial;
+  --font-weight-normal: 400;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --tracking-*: initial;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.1em;
+  --tracking-brand: 0.3em;
+
+  --leading-*: initial;
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+
+  --spacing: 0.25rem;
+
+  --container-*: initial;
+  --container-xs: 20rem;
+  --container-sm: 24rem;
+  --container-md: 28rem;
+  --container-xl: 36rem;
+
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --blur-*: initial;
+
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}

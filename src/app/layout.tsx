@@ -1,18 +1,20 @@
 import type { Metadata, Viewport } from "next";
 import { Anton, Open_Sans } from "next/font/google";
+import { brand } from "@/design/brand";
+import { colors } from "@/design/tokens";
 import "./globals.css";
 
 const openSans = Open_Sans({ variable: "--font-open-sans", subsets: ["latin"] });
 const anton = Anton({ variable: "--font-anton", weight: "400", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: { default: "Race Buddy", template: "%s · Race Buddy" },
-  description: "Lost your race partner? Find a new one. The partner finder for doubles and relay fitness races.",
-  appleWebApp: { capable: true, title: "Race Buddy", statusBarStyle: "black-translucent" },
+  title: { default: brand.name, template: `%s · ${brand.name}` },
+  description: brand.description,
+  appleWebApp: { capable: true, title: brand.name, statusBarStyle: "black-translucent" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
+  themeColor: colors.bg,
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

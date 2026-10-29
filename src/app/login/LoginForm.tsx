@@ -54,7 +54,7 @@ export function LoginForm({ initialMode, next }: { initialMode: Mode; next: stri
         )}
         {mode === "signup" && (
           <label className="flex items-start gap-3 text-sm">
-            <input type="checkbox" name="adult" className="mt-1 h-5 w-5 accent-[var(--accent)]" required />
+            <input type="checkbox" name="adult" className="mt-1 h-5 w-5 accent-accent" required />
             <span>
               I am 18 or over and agree to the <Link href="/privacy" className="underline">privacy notice</Link>.
             </span>

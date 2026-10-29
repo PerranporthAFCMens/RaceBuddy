@@ -86,7 +86,7 @@ export function Chat({
         return (
           <div key={m.id} className={`max-w-[82%] ${mine ? "self-end" : "self-start"}`}>
             {!mine && Object.keys(names).length > 1 && (
-              <p className="mb-0.5 text-[0.65rem] uppercase tracking-wider text-muted">{names[m.sender_id] ?? "Athlete"}</p>
+              <p className="mb-0.5 text-2xs uppercase tracking-wider text-muted">{names[m.sender_id] ?? "Athlete"}</p>
             )}
             <p className={`whitespace-pre-wrap break-words px-3 py-2 text-sm ${mine ? "bg-accent text-accent-ink" : "bg-soft"}`}>
               {m.body}

@@ -57,7 +57,7 @@ export default async function AthletePage({ params }: PageProps<"/athletes/[id]"
     <div className="-mx-4 -mt-5">
       <div className="relative border-b border-fg">
         <Avatar name={profile.first_name} path={profile.photo_path} size={640} className="!h-72 !w-full" />
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+        <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-bg/90 to-transparent p-4">
           <h1 className="font-display text-4xl uppercase leading-none tracking-wide">
             {profile.first_name}, {profile.age}
           </h1>

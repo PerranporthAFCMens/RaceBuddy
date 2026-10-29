@@ -20,7 +20,7 @@ function NameAndConsent() {
         <input className="input" name="full_name" autoComplete="name" required minLength={3} maxLength={80} />
       </label>
       <label className="flex items-start gap-3 text-xs text-muted">
-        <input type="checkbox" name="consent" required className="mt-0.5 h-5 w-5 accent-[var(--accent)]" />
+        <input type="checkbox" name="consent" required className="mt-0.5 h-5 w-5 accent-accent" />
         I agree to share my full name with the race organiser so they can update the start list.
       </label>
     </>

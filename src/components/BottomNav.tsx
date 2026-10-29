@@ -31,7 +31,7 @@ export function BottomNav({ badges }: { badges: Partial<Record<string, number>> 
               >
                 {tab.label}
                 {badge ? (
-                  <span className="ml-1.5 inline-grid min-w-5 place-items-center bg-accent px-1 text-[0.65rem] leading-5 text-accent-ink">
+                  <span className="badge ml-1.5">
                     {badge}
                   </span>
                 ) : null}

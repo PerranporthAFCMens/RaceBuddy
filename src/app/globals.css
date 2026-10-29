@@ -1,38 +1,12 @@
 @import "tailwindcss";
+/* Colours, type, spacing, radii and motion come from here (built from src/design/tokens.ts). */
+@import "./tokens.css";
 
 /*
- * Race Buddy look: black, white and one gold accent, square corners, caps
- * headings. Organiser colours can override --accent per event later.
+ * Brand look: black, white and one gold accent, square corners, caps headings.
+ * Component classes below are the only place to combine utilities into a
+ * reusable style. No raw colours or arbitrary values: see BRAND.md.
  */
-:root {
-  --bg: #000000;
-  --panel: #111111;
-  --soft: #1a1a1a;
-  --edge: #4d4d4d;
-  --muted: #a6a6a6;
-  --fg: #ffffff;
-  --accent: #c09b2f;
-  --accent-ink: #000000;
-  --ok: #5fb36a;
-  --danger: #e5484d;
-  color-scheme: dark;
-}
-
-@theme inline {
-  --color-bg: var(--bg);
-  --color-panel: var(--panel);
-  --color-soft: var(--soft);
-  --color-edge: var(--edge);
-  --color-muted: var(--muted);
-  --color-fg: var(--fg);
-  --color-accent: var(--accent);
-  --color-accent-ink: var(--accent-ink);
-  --color-ok: var(--ok);
-  --color-danger: var(--danger);
-  --font-sans: var(--font-open-sans), "Helvetica Neue", Arial, sans-serif;
-  --font-display: var(--font-anton), Impact, "Arial Narrow Bold", sans-serif;
-  --radius-*: initial;
-}
 
 html,
 body {
@@ -45,8 +19,9 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Buttons. One primary (gold) action per screen. */
 @utility btn {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold uppercase tracking-wide transition-opacity disabled:opacity-50;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold uppercase tracking-wide transition-opacity disabled:cursor-not-allowed disabled:opacity-50;
 }
 @utility btn-gold {
   @apply btn bg-accent text-accent-ink hover:opacity-90;
@@ -60,26 +35,65 @@ body {
 @utility btn-ghost {
   @apply btn text-muted hover:text-fg;
 }
+@utility btn-danger {
+  @apply btn border border-danger text-danger hover:bg-soft;
+}
+
+/* Forms */
 @utility field-label {
   @apply mb-1 block text-xs font-semibold uppercase tracking-wider text-muted;
 }
 @utility input {
-  @apply block min-h-11 w-full border border-edge bg-panel px-3 py-2 text-base text-fg placeholder:text-muted/70 focus:border-accent focus:outline-none;
+  @apply block min-h-11 w-full border border-line bg-panel px-3 py-2 text-base text-fg placeholder:text-hint focus:border-accent focus:outline-none aria-invalid:border-danger;
 }
+
+/* Headings */
 @utility heading {
-  @apply text-center text-xl uppercase tracking-wide underline decoration-1 underline-offset-[6px];
+  @apply text-center text-xl uppercase tracking-wide underline decoration-1 underline-offset-6;
 }
+
+/* Filter chips */
 @utility chip {
-  @apply inline-flex min-h-8 items-center border border-edge px-2.5 py-1 text-xs uppercase tracking-wide text-fg;
+  @apply inline-flex min-h-8 items-center border border-line px-2.5 py-1 text-xs uppercase tracking-wide text-fg;
 }
 @utility chip-on {
   @apply border-accent text-accent;
 }
+
+/* Cards */
 @utility card {
   @apply border border-edge bg-bg;
 }
 
+/* Flags and badges: small caps labels for status (ticket, matched, team, counts). */
+@utility flag {
+  @apply inline-flex items-center gap-1.5 whitespace-nowrap px-2 py-1 text-2xs font-bold uppercase leading-none tracking-widest;
+}
+@utility flag-gold {
+  @apply flag bg-accent text-accent-ink;
+}
+@utility flag-line {
+  @apply flag border border-fg text-fg;
+}
+@utility flag-ok {
+  @apply flag border border-ok text-ok;
+}
+@utility badge {
+  @apply inline-grid min-w-5 place-items-center bg-accent px-1 text-2xs leading-5 font-bold text-accent-ink;
+}
+
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

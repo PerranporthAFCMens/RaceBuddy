@@ -53,7 +53,7 @@ export function EntryForm({
               value={opt.value ? "yes" : "no"}
               checked={hasTicket === opt.value}
               onChange={() => setHasTicket(opt.value)}
-              className="h-5 w-5 accent-[var(--accent)]"
+              className="h-5 w-5 accent-accent"
               required
             />
           </label>
@@ -131,7 +131,7 @@ export function EntryForm({
                     name="wanted_category_ids"
                     value={c.id}
                     defaultChecked={entry?.wanted_category_ids.includes(c.id)}
-                    className="h-5 w-5 accent-[var(--accent)]"
+                    className="h-5 w-5 accent-accent"
                   />
                   {categoryLabel(c)}
                 </label>
@@ -149,7 +149,7 @@ export function EntryForm({
                       name="race_days"
                       value={d}
                       defaultChecked={entry ? entry.race_days.includes(d) : true}
-                      className="accent-[var(--accent)]"
+                      className="accent-accent"
                     />
                     {d}
                   </label>
@@ -179,7 +179,7 @@ export function EntryForm({
                 name="status"
                 value="paused"
                 defaultChecked={entry.status === "paused"}
-                className="h-5 w-5 accent-[var(--accent)]"
+                className="h-5 w-5 accent-accent"
               />
               Hide me from the feed for now
             </label>
