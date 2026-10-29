@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { Logo } from "@/components/Logo";
 import { requireUser } from "@/lib/data";
@@ -36,7 +37,9 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       <main className="mx-auto w-full max-w-xl flex-1 px-4 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {children}
       </main>
-      <BottomNav badges={badges} />
+      <Suspense fallback={null}>
+        <BottomNav badges={badges} />
+      </Suspense>
     </>
   );
 }

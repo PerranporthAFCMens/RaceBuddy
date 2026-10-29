@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { MatchedFlag, TicketFlag } from "@/components/TicketFlag";
 import { getEvents, getMyEntries, getMyProfile, requireUser } from "@/lib/data";
+import { SetupSteps } from "@/components/SetupSteps";
 import { formatEventDates, photoUrl } from "@/lib/format";
+import { isSituation, situationLabel } from "@/lib/matching";
 import { deleteAccount } from "./actions";
 import { ProfileForm } from "./ProfileForm";
 
@@ -12,20 +14,26 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
   const user = await requireUser();
   const [profile, entries, events] = await Promise.all([getMyProfile(), getMyEntries(), getEvents()]);
   const welcome = params.welcome === "1" || !profile;
+  const situation = isSituation(params.situation) ? params.situation : null;
 
   return (
     <div className="space-y-10">
       <section>
+        {welcome && (
+          <div className="mb-6">
+            <SetupSteps current={1} />
+          </div>
+        )}
         <h1 className="heading mb-2">{welcome ? "Build your race profile" : "My profile"}</h1>
         {welcome && (
           <p className="mb-6 text-center text-sm text-muted">This is what other athletes see. You can change it any time.</p>
         )}
         <div className={welcome ? "" : "mt-6"}>
-          <ProfileForm profile={profile} photoUrl={photoUrl(profile?.photo_path)} welcome={welcome} />
+          <ProfileForm profile={profile} photoUrl={photoUrl(profile?.photo_path)} welcome={welcome} situation={situation} />
         </div>
       </section>
 
-      {profile && (
+      {profile && !welcome && (
         <section>
           <h2 className="heading mb-6">My races</h2>
           <ul className="space-y-3">
@@ -43,6 +51,11 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
                         {entry.status === "paused" && <span className="chip">Hidden</span>}
                       </div>
                     )}
+                    {entry && (
+                      <p className="mt-2 text-xs text-muted">
+                        {situationLabel({ ...entry, team_size: null })} · Alerts {entry.alerts_email ? "on" : "off"}
+                      </p>
+                    )}
                   </div>
                   <Link href={`/me/race?event=${event.slug}`} className={entry ? "btn-line" : "btn-gold"}>
                     {entry ? "Edit" : "Join"}
@@ -54,6 +67,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
         </section>
       )}
 
+      {!welcome && (
       <section className="space-y-4 border-t border-edge pt-6">
         <p className="text-sm text-muted">Signed in as {user.email}</p>
         <form action="/auth/signout" method="post">
@@ -71,6 +85,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
           </form>
         </details>
       </section>
+      )}
     </div>
   );
 }

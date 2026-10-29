@@ -1,3 +1,5 @@
+import type { Situation } from "./matching";
+
 // Shapes of the rows the app reads. Kept by hand for now; once the Supabase
 // project exists these can be generated with `supabase gen types`.
 
@@ -54,6 +56,10 @@ export type Entry = {
   order_reference: string | null;
   ticket_verified: boolean;
   status: "looking" | "matched" | "paused";
+  situation: Situation;
+  partner_five_k_range: number | null;
+  partner_regions: string[];
+  alerts_email: boolean;
 };
 
 /** A row of the feed_entries view: a listing plus the safe profile fields. */
@@ -86,6 +92,7 @@ export type FeedEntry = {
   travel_miles: number | null;
   five_k_seconds: number | null;
   best_race_time: string | null;
+  situation: Situation;
 };
 
 export type AthleteProfile = {

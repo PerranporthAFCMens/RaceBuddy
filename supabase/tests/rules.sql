@@ -214,3 +214,102 @@ end $$;
 select pg_temp.expect_error($q$select * from public.feed_entries$q$, 'permission denied');
 select pg_temp.expect_error($q$select * from public.profiles$q$, 'permission denied');
 reset role;
+
+-- "Looking for" matching and alerts -----------------------------------------
+\set ann '66666666-6666-6666-6666-666666666666'
+\set bea '77777777-7777-7777-7777-777777777777'
+\set ben '88888888-8888-8888-8888-888888888888'
+\set cal '99999999-9999-9999-9999-999999999999'
+\set eve 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
+insert into auth.users (id, email) values
+  (:'ann', 'ann@example.com'), (:'bea', 'bea@example.com'), (:'ben', 'ben@example.com'),
+  (:'cal', 'cal@example.com'), (:'eve', 'eve@example.com');
+
+-- Ann has a Mixed Doubles Saturday ticket and wants someone within 2 minutes, in Cornwall.
+select pg_temp.act_as(:'ann');
+set role authenticated;
+insert into public.profiles (id, first_name, date_of_birth, region, five_k_seconds) values (:'ann', 'Ann', '1990-01-01', 'Cornwall', 1300);
+insert into public.entries (user_id, event_id, has_ticket, category_id, situation, partner_five_k_range, partner_regions)
+select :'ann', e.id, true, c.id, 'single', 120, array['Cornwall']
+from public.events e join public.categories c on c.event_id = e.id
+where e.slug = 'keltx-exeter-2027' and c.tt_ticket_type_id = 'tt_7001178';
+do $$ begin
+  assert (select situation from public.entries where user_id = auth.uid()) = 'spare_spot', 'ticket means spare_spot';
+end $$;
+select pg_temp.expect_error($q$select public.entry_fits(gen_random_uuid(), gen_random_uuid())$q$, 'permission denied');
+reset role;
+
+-- Bea needs a spot in any mixed category: fits Ann. Ben (single, male only) does not.
+-- Cal (single, mixed) is too slow for Ann. Eve (need_spot, mixed) is in Devon.
+select pg_temp.act_as(:'bea');
+set role authenticated;
+insert into public.profiles (id, first_name, date_of_birth, region, five_k_seconds) values (:'bea', 'Bea', '1991-01-01', 'Cornwall', 1380);
+insert into public.entries (user_id, event_id, has_ticket, situation, wanted_category_ids)
+select :'bea', e.id, false, 'need_spot', array(select id from public.categories where gender = 'mixed' and event_id = e.id)
+from public.events e where e.slug = 'keltx-exeter-2027';
+reset role;
+select pg_temp.act_as(:'ben');
+set role authenticated;
+insert into public.profiles (id, first_name, date_of_birth, region) values (:'ben', 'Ben', '1992-01-01', 'Cornwall');
+insert into public.entries (user_id, event_id, has_ticket, situation, wanted_category_ids)
+select :'ben', e.id, false, 'single', array(select id from public.categories where gender = 'male' and event_id = e.id)
+from public.events e where e.slug = 'keltx-exeter-2027';
+reset role;
+select pg_temp.act_as(:'cal');
+set role authenticated;
+insert into public.profiles (id, first_name, date_of_birth, region, five_k_seconds) values (:'cal', 'Cal', '1993-01-01', 'Cornwall', 2000);
+insert into public.entries (user_id, event_id, has_ticket, situation, wanted_category_ids)
+select :'cal', e.id, false, 'single', array(select id from public.categories where gender = 'mixed' and event_id = e.id)
+from public.events e where e.slug = 'keltx-exeter-2027';
+reset role;
+select pg_temp.act_as(:'eve');
+set role authenticated;
+insert into public.profiles (id, first_name, date_of_birth, region) values (:'eve', 'Eve', '1994-01-01', 'Devon');
+insert into public.entries (user_id, event_id, has_ticket, situation, wanted_category_ids)
+select :'eve', e.id, false, 'need_spot', array(select id from public.categories where gender = 'mixed' and event_id = e.id)
+from public.events e where e.slug = 'keltx-exeter-2027';
+reset role;
+
+select pg_temp.act_as(:'ann');
+set role authenticated;
+do $$ declare ev uuid := (select id from public.events where slug = 'keltx-exeter-2027'); begin
+  assert (select array_agg(f.first_name order by f.first_name) from public.feed_entries f
+          where f.id in (select public.my_matches(ev))) = array['Bea'], 'Ann matches only Bea';
+  assert (select count(*) from public.match_alerts) = 1, 'Ann has one alert';
+  assert (select f.first_name from public.match_alerts m join public.feed_entries f on f.id = m.match_entry_id) = 'Bea', 'alert is for Bea';
+  assert (select situation from public.feed_entries where first_name = 'Bea') = 'need_spot', 'feed shows situation';
+end $$;
+reset role;
+
+-- Bea has no criteria, so she sees Ann. Two people who both need a spot don't match.
+-- Cal (single) sees Ann (spare spot) but not Ben (no shared category).
+select pg_temp.act_as(:'bea');
+set role authenticated;
+do $$ declare ev uuid := (select id from public.events where slug = 'keltx-exeter-2027'); begin
+  assert (select array_agg(f.first_name order by f.first_name) from public.feed_entries f
+          where f.id in (select public.my_matches(ev))) @> array['Ann'], 'Bea sees Ann';
+  assert not exists (select 1 from public.feed_entries f where f.first_name = 'Eve' and f.id in (select public.my_matches(ev))), 'need_spot pairs do not match';
+  assert (select count(*) from public.match_alerts) = 0, 'Bea sees no one else''s alerts';
+end $$;
+reset role;
+select pg_temp.act_as(:'cal');
+set role authenticated;
+do $$ declare ev uuid := (select id from public.events where slug = 'keltx-exeter-2027'); begin
+  assert exists (select 1 from public.feed_entries f where f.first_name = 'Ann' and f.id in (select public.my_matches(ev))), 'single sees spare spot';
+  assert not exists (select 1 from public.feed_entries f where f.first_name = 'Ben' and f.id in (select public.my_matches(ev))), 'no shared category';
+end $$;
+-- Clients cannot write alerts.
+select pg_temp.expect_error(
+  format($q$insert into public.match_alerts (user_id, for_entry_id, match_entry_id) select %L, id, id from public.entries limit 1$q$, :'cal'),
+  'permission denied');
+reset role;
+
+-- Turning alerts off stops new ones; blocked people never match.
+select pg_temp.act_as(:'ann');
+set role authenticated;
+update public.entries set alerts_email = false where user_id = auth.uid();
+insert into public.blocks (blocker_id, blocked_id) values (auth.uid(), :'bea');
+do $$ declare ev uuid := (select id from public.events where slug = 'keltx-exeter-2027'); begin
+  assert not exists (select 1 from public.my_matches(ev)), 'blocked Bea no longer a match';
+end $$;
+reset role;

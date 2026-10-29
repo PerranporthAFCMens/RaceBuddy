@@ -3,7 +3,8 @@ import { Avatar } from "@/components/Avatar";
 import { SubmitButton } from "@/components/SubmitButton";
 import { TicketFlag } from "@/components/TicketFlag";
 import { requireProfile } from "@/lib/data";
-import { timeAgo } from "@/lib/format";
+import { categoryLabel, formatRaceTime, timeAgo } from "@/lib/format";
+import { categoriesOf, situationLabel } from "@/lib/matching";
 import { createClient } from "@/lib/supabase/server";
 import type { AthleteProfile, FeedEntry, PartnerRequest } from "@/lib/types";
 import { respondToRequest, withdrawRequest } from "./actions";
@@ -38,6 +39,26 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
   const outgoing = visible.filter((r) => r.from_user === user.id && r.status === "pending");
   const accepted = visible.filter((r) => r.status === "accepted").slice(0, 10);
 
+  const eventIds = [...new Set(requests.map((r) => r.event_id))];
+  const { data: catRows } = eventIds.length
+    ? await supabase.from("categories").select("id, name, race_day").in("event_id", eventIds)
+    : { data: [] };
+  const catById = new Map(((catRows ?? []) as { id: string; name: string; race_day: string | null }[]).map((c) => [c.id, c]));
+  const summary = (e: FeedEntry | undefined, p: AthleteProfile) => {
+    const cats = e ? [...new Set(categoriesOf(e).map((id) => catById.get(id)).filter(Boolean).map((c) => categoryLabel(c!)))] : [];
+    return [
+      cats.slice(0, 2).join(", ") + (cats.length > 2 ? ` +${cats.length - 2}` : ""),
+      p.five_k_seconds ? `5km ${formatRaceTime(p.five_k_seconds)}` : null,
+      p.home_town ?? p.region,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  };
+  const sentAgo = (iso: string) => {
+    const t = timeAgo(iso);
+    return t === "just now" ? "Sent just now" : `Sent ${t} ago`;
+  };
+
   const error = typeof params.error === "string" ? params.error : null;
 
   return (
@@ -68,8 +89,17 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
                         {p.first_name}, {p.age}
                         <span className="ml-2 font-normal normal-case text-muted">{timeAgo(r.created_at)}</span>
                       </p>
-                      {myEntry?.team_name && <p className="text-xs text-accent">Wants to join {myEntry.team_name}</p>}
-                      {theirEntry && <TicketFlag hasTicket={theirEntry.has_ticket} verified={theirEntry.ticket_verified} />}
+                      {myEntry?.team_name ? (
+                        <p className="text-sm text-accent">Wants to join {myEntry.team_name}</p>
+                      ) : (
+                        theirEntry && <p className="text-sm text-accent">{situationLabel(theirEntry)}</p>
+                      )}
+                      <p className="text-sm text-muted">{summary(theirEntry, p)}</p>
+                      {theirEntry && (
+                        <div className="mt-1.5">
+                          <TicketFlag hasTicket={theirEntry.has_ticket} verified={theirEntry.ticket_verified} />
+                        </div>
+                      )}
                     </div>
                   </Link>
                   {r.note && <p className="border-l-2 border-accent pl-3 text-sm">{r.note}</p>}
@@ -100,11 +130,11 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
                   <Avatar name={p.first_name} path={p.photo_path} size={40} />
                   <Link href={`/athletes/${r.to_entry_id}`} className="min-w-0 flex-1 text-sm font-bold uppercase">
                     {p.first_name}
-                    <span className="ml-2 font-normal normal-case text-muted">sent {timeAgo(r.created_at)} ago</span>
+                    <span className="ml-2 font-normal normal-case text-muted">{sentAgo(r.created_at)}</span>
                   </Link>
                   <form action={withdrawRequest}>
                     <input type="hidden" name="request_id" value={r.id} />
-                    <SubmitButton className="btn-ghost text-xs" pendingText="…">
+                    <SubmitButton className="btn-ghost px-3 text-xs" pendingText="…">
                       Withdraw
                     </SubmitButton>
                   </form>

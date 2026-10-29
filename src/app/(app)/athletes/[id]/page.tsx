@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { MatchedFlag, TicketFlag } from "@/components/TicketFlag";
 import { getCategories, getMyEntries, requireProfile } from "@/lib/data";
-import { formatRaceTime } from "@/lib/format";
+import { formatRaceTime, photoUrl } from "@/lib/format";
+import { situationLabel } from "@/lib/matching";
 import { createClient } from "@/lib/supabase/server";
 import type { AthleteProfile, FeedEntry, PartnerRequest } from "@/lib/types";
 import { RequestForm } from "./RequestForm";
@@ -42,9 +43,10 @@ export default async function AthletePage({ params }: PageProps<"/athletes/[id]"
   const wants = [...new Set(entry.wanted_category_ids.map((cid) => categories.find((c) => c.id === cid)?.name).filter(Boolean))];
 
   const rows: [string, string | null | undefined][] = [
+    ["Looking for", situationLabel(entry)],
     ["Category", entry.has_ticket ? [entry.category_name, entry.race_day].filter(Boolean).join(" · ") : wants.join(", ")],
     ["Race days", entry.has_ticket ? null : entry.race_days.join(", ")],
-    ["Team", isTeam ? `${entry.team_name ?? "Relay team"} · needs ${entry.spots_needed} of 4` : null],
+    ["Captain", isTeam ? `${profile.first_name}, ${profile.age}` : null],
     ["Stations to cover", isTeam ? entry.stations : null],
     ["5km time", formatRaceTime(profile.five_k_seconds)],
     ["Previous race", profile.best_race_time],
@@ -53,14 +55,24 @@ export default async function AthletePage({ params }: PageProps<"/athletes/[id]"
     ["Will travel", profile.travel_miles != null ? `${profile.travel_miles} miles` : null],
   ];
 
+  const hasPhoto = Boolean(photoUrl(profile.photo_path));
+  const title = isTeam ? entry.team_name || `${profile.first_name}'s team` : `${profile.first_name}, ${profile.age}`;
+
   return (
     <div className="-mx-4 -mt-5">
       <div className="relative border-b border-fg">
-        <Avatar name={profile.first_name} path={profile.photo_path} size={640} className="!h-72 !w-full" />
+        {hasPhoto ? (
+          <Avatar name={profile.first_name} path={profile.photo_path} size={640} className="!h-72 !w-full" />
+        ) : (
+          <div className="h-28 bg-gradient-to-br from-[#2a2a2a] to-[#0a0a0a]" aria-hidden />
+        )}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-4">
-          <h1 className="font-display text-4xl uppercase leading-none tracking-wide">
-            {profile.first_name}, {profile.age}
-          </h1>
+          <h1 className="font-display text-4xl uppercase leading-none tracking-wide">{title}</h1>
+          {isTeam && (
+            <p className="mt-1 text-sm text-accent">
+              Relay · needs {entry.spots_needed} of 4
+            </p>
+          )}
           <div className="mt-2 flex gap-2">
             <TicketFlag hasTicket={entry.has_ticket} verified={entry.ticket_verified} />
             {entry.status === "matched" && <MatchedFlag />}

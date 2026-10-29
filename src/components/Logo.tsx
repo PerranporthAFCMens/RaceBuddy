@@ -10,7 +10,7 @@ export function Logo({ size = "sm", href = "/" }: { size?: "sm" | "lg"; href?: s
       }
       aria-label="Race Buddy"
     >
-      RACE BUDD<b className="font-display font-normal tracking-normal text-accent text-[1.2em]">Y</b>
+      RACE BUD<span className="tracking-[0.06em]">D</span><b className="font-display font-normal tracking-normal text-accent text-[1.2em]">Y</b>
     </span>
   );
   return href ? <Link href={href}>{mark}</Link> : mark;
