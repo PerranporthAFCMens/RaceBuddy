@@ -44,15 +44,17 @@ Not done until you have shown:
 - Every schema change (tables, columns, RLS, functions, grants) is a migration file with a rollback in `supabase/rollback/`. Never only through the dashboard.
 - Never remove or loosen an RLS policy to make a feature work.
 - No service-role key in browser code, chat or the repo.
-- Order: Adam runs the exact SQL on the **dev** database, the PR merges to `dev`, the dev site is checked; at release Adam runs the same SQL on **live** before merging the release PR.
+- **One database serves both sites** (as in HybridOS). A migration Adam runs is live at once, while the live site still runs older code. So every migration must work with the code on both `dev` and `main`: add columns, tables and functions first; remove or rename only in a later release once live no longer uses them.
+- Order: Adam approves and runs the exact SQL, then the PR merges to `dev`.
+- Test accounts and test data go on a test race only (like the HybridOS test gym), never on a real KeltX race, and are deleted after use.
 - Security-definer functions bypass RLS: each must check who is calling.
-- `npm run test:live` creates throwaway users: run it against the dev database only.
+- `npm run test:live` creates throwaway users and deletes them afterwards; check none are left.
 
 ## 5. Release rules (dev -> live)
 
 - A release is a PR from `dev` into `main`, titled `Release YYYY-MM-DD`. CI refuses a PR into `main` from any other branch.
 - All required checks must pass on the release PR. Adam merges it; Claude never does.
-- Before merging: run any pending migrations on live (exact SQL in the PR), and check the dev site on a phone.
+- Before merging: check the dev site on a phone.
 - After merging: check Vercel shows the release commit READY on the live site, open the live site on a phone, then say it is done.
 - Rollback: in Vercel, promote the previous live deployment, then open a revert PR.
 - No releases on a race day.

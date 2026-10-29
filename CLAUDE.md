@@ -9,7 +9,7 @@ Owner (Adam) is not a developer: plain English, short exact steps, and say what 
 - Read the actual current file before editing. Do not work from memory.
 
 ## Two sites
-- `dev` branch -> **dev site** (Vercel project `race-buddy-dev`, dev Supabase, gold "Dev site" bar). `main` -> **live site** (Vercel project `race-buddy`, live Supabase).
+- `dev` branch -> **dev site** (Vercel project `race-buddy-dev`, gold "Dev site" bar). `main` -> **live site** (Vercel project `race-buddy`). Both use the SAME Supabase project.
 - Work branches are never deployed. Code reaches dev only through a PR whose checks pass, and live only through a release PR from `dev` to `main`.
 
 ## Workflow
@@ -25,8 +25,9 @@ Owner (Adam) is not a developer: plain English, short exact steps, and say what 
 
 ## Database and access
 - Every schema change is a migration in `supabase/migrations/` with a rollback in `supabase/rollback/` and a test in `supabase/tests/rules.sql`. Never loosen RLS to make a feature work. No service-role key in browser code.
-- Hand Adam the exact SQL. It runs on the dev database first, then on live as part of a release. Never run SQL against live yourself.
+- One database serves both sites: every migration must work with the code on both `dev` and `main` (add first, remove later). Hand Adam the exact SQL; never run SQL yourself.
+- Test accounts and data only on a test race, cleaned up after.
 - Organisers never see chats. Users are 18+.
 
 ## Checks
-`npm run verify` (lint incl. brand rule, typecheck, tokens, unit + contrast tests), `npm run test:brand` (after `npm run build`), `npm run test:db` (as a non-root user). `npm run test:live` only against the dev database.
+`npm run verify` (lint incl. brand rule, typecheck, tokens, unit + contrast tests), `npm run test:brand` (after `npm run build`), `npm run test:db` (as a non-root user). `npm run test:live` creates throwaway users and deletes them.

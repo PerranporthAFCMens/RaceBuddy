@@ -5,7 +5,7 @@ Short current-state page. Per-change notes are in `docs/notes/`.
 ## Sites
 
 - Live: https://race-buddy-livid.vercel.app (Vercel `race-buddy`, branch `main`, live Supabase).
-- Dev: Vercel `race-buddy-dev`, branch `dev`, dev Supabase. Being set up; see `ENVIRONMENT.md`.
+- Dev: Vercel `race-buddy-dev`, branch `dev`, same Supabase. Being set up; see `ENVIRONMENT.md`.
 
 ## Database
 
