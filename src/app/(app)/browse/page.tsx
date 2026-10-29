@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { TicketFlag } from "@/components/TicketFlag";
 import { getCategories, getMyEntries, pickEvent, requireProfile } from "@/lib/data";
+import { fitReasons, situationLabel } from "@/lib/matching";
 import { categoryLabel, formatEventDates, formatRaceTime, REGIONS } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 import type { Category, FeedEntry } from "@/lib/types";
@@ -18,6 +19,7 @@ type Filters = {
   fivek?: string;
   region?: string;
   day?: string;
+  view?: string;
 };
 
 function str(v: string | string[] | undefined) {
@@ -26,7 +28,7 @@ function str(v: string | string[] | undefined) {
 
 export default async function BrowsePage({ searchParams }: PageProps<"/browse">) {
   const params = await searchParams;
-  const { user } = await requireProfile();
+  const { user, profile } = await requireProfile();
   const { event, events } = await pickEvent(str(params.event));
   if (!event) return <p className="text-center text-muted">No races are open on Race Buddy yet. Check back soon.</p>;
 
@@ -37,10 +39,12 @@ export default async function BrowsePage({ searchParams }: PageProps<"/browse">)
     fivek: str(params.fivek),
     region: str(params.region),
     day: str(params.day),
+    view: str(params.view),
   };
 
   const [categories, myEntries] = await Promise.all([getCategories(event.id), getMyEntries()]);
   const mine = myEntries.find((e) => e.event_id === event.id);
+  const forYou = Boolean(mine) && f.view !== "all";
   const relayIds = categories.filter((c) => c.team_size === 4).map((c) => c.id);
   const days = [...new Set(categories.map((c) => c.race_day).filter(Boolean))] as string[];
 
@@ -61,6 +65,13 @@ export default async function BrowsePage({ searchParams }: PageProps<"/browse">)
   if (f.region && (REGIONS as readonly string[]).includes(f.region)) query = query.eq("region", f.region);
   if (f.day && days.includes(f.day)) query = query.contains("race_days", [f.day]);
 
+  let matchIds: string[] = [];
+  if (mine) {
+    const { data: ids } = await supabase.rpc("my_matches", { p_event: event.id });
+    matchIds = ((ids as string[] | null) ?? []).filter(Boolean);
+  }
+  if (forYou) query = query.in("id", matchIds.length ? matchIds : ["00000000-0000-0000-0000-000000000000"]);
+
   const { data, error } = await query;
   // Category and race type match either the ticket's category or the
   // categories a no-ticket athlete would race, so they're filtered here.
@@ -74,7 +85,14 @@ export default async function BrowsePage({ searchParams }: PageProps<"/browse">)
     return true;
   });
   const catById = new Map(categories.map((c) => [c.id, c]));
-  const activeCount = Object.values(f).filter(Boolean).length;
+  const activeCount = [f.ticket, f.cat, f.type, f.fivek, f.region, f.day].filter(Boolean).length;
+  const meSide = mine
+    ? { ...mine, five_k_seconds: profile.five_k_seconds, region: profile.region }
+    : null;
+  const catName = (id: string) => {
+    const c = catById.get(id);
+    return c ? (c.race_day ? `${c.name} · ${c.race_day}` : c.name) : undefined;
+  };
 
   const link = (patch: Partial<Filters>) => {
     const next = new URLSearchParams({ event: event.slug });
@@ -99,15 +117,56 @@ export default async function BrowsePage({ searchParams }: PageProps<"/browse">)
         {event.name} · {formatEventDates(event.starts_on, event.ends_on)}
       </p>
 
-      {!mine && (
-        <div className="border border-accent p-4 text-sm">
-          <p className="mb-3">Add your listing for {event.name} so others can see you and you can send requests.</p>
-          <Link href={`/me/race?event=${event.slug}`} className="btn-gold w-full">
-            Add my listing
+      {params.new === "1" && mine && (
+        <p role="status" className="border border-ok px-3 py-2 text-sm text-ok">
+          You&apos;re set up. {matchIds.length ? "Here's who fits what you're looking for." : "No one fits yet, so we'll email you when someone does."}
+        </p>
+      )}
+
+      {mine && (
+        <div className="grid grid-cols-2 border border-edge text-sm font-semibold uppercase tracking-wide" role="tablist" aria-label="Show">
+          <Link
+            href={link({ view: undefined })}
+            role="tab"
+            aria-selected={forYou}
+            className={`grid min-h-11 place-items-center ${forYou ? "bg-fg text-bg" : "text-muted"}`}
+          >
+            For you · {matchIds.length}
+          </Link>
+          <Link
+            href={link({ view: "all" })}
+            role="tab"
+            aria-selected={!forYou}
+            className={`grid min-h-11 place-items-center ${!forYou ? "bg-fg text-bg" : "text-muted"}`}
+          >
+            Everyone
           </Link>
         </div>
       )}
 
+      {mine && forYou && (
+        <p className="flex items-center gap-2 border border-accent px-3 py-2 text-sm">
+          <span className={`h-2 w-2 shrink-0 rounded-full ${mine.alerts_email ? "bg-accent" : "bg-edge"}`} aria-hidden />
+          <span className="flex-1">
+            {mine.alerts_email ? "Alerts on. We'll email you when a new match posts." : "Alerts off. Turn them on to hear about new matches."}
+          </span>
+          <Link href={`/me/race?event=${event.slug}#alerts`} className="text-accent underline">
+            Change
+          </Link>
+        </p>
+      )}
+
+      {!mine && (
+        <div className="border border-accent p-4 text-sm">
+          <p className="mb-3">Tell us what you&apos;re looking for at {event.name}. We&apos;ll show who fits and email you when someone new does.</p>
+          <Link href={`/me/race?event=${event.slug}`} className="btn-gold w-full">
+            Set up my race
+          </Link>
+        </div>
+      )}
+
+      {!forYou && (
+      <>
       <div className="flex flex-wrap gap-2">
         {[
           { label: "Everyone", patch: { ticket: undefined } },
@@ -194,18 +253,37 @@ export default async function BrowsePage({ searchParams }: PageProps<"/browse">)
           </div>
         </form>
       </details>
+      </>
+      )}
 
       {error && <p className="text-sm text-danger">Couldn&apos;t load athletes. Pull to refresh or try again.</p>}
 
       {athletes.length === 0 ? (
-        <p className="py-10 text-center text-muted">
-          No one matches yet. Try fewer filters, or check back soon as more athletes join.
-        </p>
+        forYou ? (
+          <div className="space-y-4 py-8 text-center">
+            <p className="text-muted">
+              No one fits what you&apos;re looking for yet.
+              {mine?.alerts_email ? " We'll email you as soon as someone does." : ""}
+            </p>
+            <div className="flex justify-center gap-2">
+              <Link href={link({ view: "all" })} className="btn-line">
+                See everyone
+              </Link>
+              <Link href={`/me/race?event=${event.slug}`} className="btn-ghost">
+                Widen my criteria
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <p className="py-10 text-center text-muted">
+            No one matches these filters. Try fewer, or check back soon as more athletes join.
+          </p>
+        )
       ) : (
         <ul className="space-y-3">
           {athletes.map((a) => (
             <li key={a.id}>
-              <AthleteCard a={a} catById={catById} />
+              <AthleteCard a={a} catById={catById} reasons={forYou && meSide ? fitReasons(meSide, a, catName) : null} />
             </li>
           ))}
         </ul>
@@ -214,7 +292,7 @@ export default async function BrowsePage({ searchParams }: PageProps<"/browse">)
   );
 }
 
-function AthleteCard({ a, catById }: { a: FeedEntry; catById: Map<string, Category> }) {
+function AthleteCard({ a, catById, reasons }: { a: FeedEntry; catById: Map<string, Category>; reasons: string[] | null }) {
   const isTeam = a.has_ticket && a.team_size === 4;
   const wants = a.wanted_category_ids.map((id) => catById.get(id)?.name).filter(Boolean) as string[];
   const uniqueWants = [...new Set(wants)];
@@ -231,12 +309,11 @@ function AthleteCard({ a, catById }: { a: FeedEntry; catById: Map<string, Catego
         <p className="truncate text-sm font-bold uppercase">
           {isTeam ? `${a.team_name || `${a.first_name}'s team`} · Relay` : `${a.first_name}, ${a.age}`}
         </p>
-        {isTeam && (
-          <p className="text-sm text-accent">
-            Needs {a.spots_needed} of 4{a.stations ? ` · ${a.stations}` : ""}
-          </p>
-        )}
-        <p className="truncate text-sm text-muted">{meta.join(" · ")}</p>
+        <p className="text-sm text-accent">
+          {situationLabel(a)}
+          {isTeam && a.stations ? ` · ${a.stations}` : ""}
+        </p>
+        <p className="text-sm text-muted">{(reasons ?? meta).join(" · ")}</p>
         <div className="mt-1.5">
           <TicketFlag hasTicket={a.has_ticket} verified={a.ticket_verified} />
         </div>

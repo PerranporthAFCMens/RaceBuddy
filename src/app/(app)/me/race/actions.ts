@@ -1,8 +1,11 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
+import { sendPendingAlerts } from "@/lib/alerts/send";
 import { requireProfile } from "@/lib/data";
+import { REGIONS } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { checkOrder } from "@/lib/ticket-tailor/client";
@@ -11,10 +14,16 @@ import type { ActionState } from "@/lib/types";
 
 const entrySchema = z.object({
   event_id: z.uuid(),
-  has_ticket: z.enum(["yes", "no"], "Tell us if you have a ticket."),
+  situation: z.enum(["spare_spot", "need_spot", "single"], "Choose what you're looking for."),
   category_id: z.string().optional(),
   wanted_category_ids: z.array(z.uuid()).default([]),
-  race_days: z.array(z.string().max(30)).default([]),
+  partner_five_k_range: z
+    .string()
+    .optional()
+    .transform((v) => (v ? Number(v) : null))
+    .refine((v) => v === null || [60, 120, 240].includes(v), "Choose an ability range."),
+  partner_regions: z.array(z.enum(REGIONS)).default([]),
+  alerts_email: z.literal("on").optional(),
   team_name: z.string().trim().max(60).optional(),
   spots_needed: z.coerce.number().int().min(1).max(3).default(1),
   stations: z.string().trim().max(120).optional(),
@@ -35,11 +44,11 @@ export async function saveEntry(_: ActionState, formData: FormData): Promise<Act
   const parsed = entrySchema.safeParse({
     ...Object.fromEntries(formData),
     wanted_category_ids: formData.getAll("wanted_category_ids"),
-    race_days: formData.getAll("race_days"),
+    partner_regions: formData.getAll("partner_regions"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
   const d = parsed.data;
-  const hasTicket = d.has_ticket === "yes";
+  const hasTicket = d.situation === "spare_spot";
 
   const supabase = await createClient();
   const [{ data: event }, { data: categories }, { data: existing }] = await Promise.all([
@@ -67,7 +76,18 @@ export async function saveEntry(_: ActionState, formData: FormData): Promise<Act
     has_ticket: hasTicket,
     category_id: hasTicket ? category!.id : null,
     wanted_category_ids: hasTicket ? [] : wanted,
-    race_days: hasTicket ? (category!.race_day ? [category!.race_day] : []) : d.race_days,
+    // Race days follow from the categories chosen.
+    race_days: [
+      ...new Set(
+        (hasTicket ? [category!] : categories.filter((c) => wanted.includes(c.id)))
+          .map((c) => c.race_day)
+          .filter((day): day is string => Boolean(day)),
+      ),
+    ],
+    situation: d.situation,
+    partner_five_k_range: d.partner_five_k_range,
+    partner_regions: d.partner_regions,
+    alerts_email: d.alerts_email === "on",
     team_name: isRelay ? d.team_name || null : null,
     spots_needed: isRelay ? d.spots_needed : 1,
     stations: isRelay ? d.stations || null : null,
@@ -108,8 +128,24 @@ export async function saveEntry(_: ActionState, formData: FormData): Promise<Act
     }
   }
 
+  // The database has queued alerts for anyone this listing suits; email them
+  // after the response so saving stays quick.
+  after(async () => {
+    try {
+      const { data: queued } = await createAdminClient()
+        .from("match_alerts")
+        .select("user_id")
+        .eq("match_entry_id", saved.id)
+        .is("emailed_at", null);
+      const ids = [...new Set((queued ?? []).map((r: { user_id: string }) => r.user_id))];
+      if (ids.length) await sendPendingAlerts(ids);
+    } catch (e) {
+      console.error("Match alerts failed", e);
+    }
+  });
+
   revalidatePath("/", "layout");
-  if (formData.get("welcome") === "1") redirect(`/browse?event=${event.slug}`);
+  if (formData.get("welcome") === "1") redirect(`/browse?event=${event.slug}&new=1`);
   return { ok: true, message };
 }
 

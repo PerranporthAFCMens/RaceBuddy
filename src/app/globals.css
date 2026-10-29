@@ -54,7 +54,7 @@ body {
 
 /* Filter chips */
 @utility chip {
-  @apply inline-flex min-h-8 items-center border border-line px-2.5 py-1 text-xs uppercase tracking-wide text-fg;
+  @apply inline-flex min-h-10 items-center border border-line px-2.5 py-1 text-xs uppercase tracking-wide text-fg;
 }
 @utility chip-on {
   @apply border-accent text-accent;
@@ -67,7 +67,7 @@ body {
 
 /* Flags and badges: small caps labels for status (ticket, matched, team, counts). */
 @utility flag {
-  @apply inline-flex items-center gap-1.5 whitespace-nowrap px-2 py-1 text-2xs font-bold uppercase leading-none tracking-widest;
+  @apply inline-flex items-center gap-1.5 whitespace-nowrap px-2 py-1 text-xs font-bold uppercase leading-none tracking-widest;
 }
 @utility flag-gold {
   @apply flag bg-accent text-accent-ink;
@@ -79,7 +79,7 @@ body {
   @apply flag border border-ok text-ok;
 }
 @utility badge {
-  @apply inline-grid min-w-5 place-items-center bg-accent px-1 text-2xs leading-5 font-bold text-accent-ink;
+  @apply inline-grid min-w-4.5 place-items-center bg-accent px-1 text-2xs leading-4.5 font-bold text-accent-ink;
 }
 
 :focus-visible {
