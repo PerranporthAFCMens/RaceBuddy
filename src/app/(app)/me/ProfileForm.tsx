@@ -12,10 +12,12 @@ export function ProfileForm({
   profile,
   photoUrl,
   welcome,
+  situation,
 }: {
   profile: Profile | null;
   photoUrl: string | null;
   welcome: boolean;
+  situation?: string | null;
 }) {
   const [state, action] = useActionState(saveProfile, undefined);
   const maxDob = new Date();
@@ -24,6 +26,7 @@ export function ProfileForm({
   return (
     <ActionForm action={action} className="space-y-5">
       <input type="hidden" name="welcome" value={welcome ? "1" : "0"} />
+      {situation && <input type="hidden" name="situation" value={situation} />}
       <PhotoPicker name="photo" currentUrl={photoUrl} />
 
       <div className="grid grid-cols-2 gap-3">
@@ -56,18 +59,18 @@ export function ProfileForm({
           </select>
         </label>
         <label className="block">
-          <span className="field-label">Home town</span>
+          <span className="field-label">Home town <span className="font-normal normal-case">(optional)</span></span>
           <input className="input" name="home_town" defaultValue={profile?.home_town ?? ""} maxLength={80} />
         </label>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <label className="block">
-          <span className="field-label">Will travel (miles)</span>
+          <span className="field-label">Will travel (miles) <span className="font-normal normal-case">(optional)</span></span>
           <input className="input" name="travel_miles" type="number" min={0} max={1000} inputMode="numeric" defaultValue={profile?.travel_miles ?? ""} />
         </label>
         <label className="block">
-          <span className="field-label">Gym</span>
+          <span className="field-label">Gym <span className="font-normal normal-case">(optional)</span></span>
           <input className="input" name="gym" defaultValue={profile?.gym ?? ""} maxLength={80} />
         </label>
       </div>
@@ -78,13 +81,13 @@ export function ProfileForm({
           <input className="input" name="five_k" placeholder="22:40" inputMode="numeric" defaultValue={formatRaceTime(profile?.five_k_seconds)} />
         </label>
         <label className="block">
-          <span className="field-label">Previous race time</span>
+          <span className="field-label">Previous race time <span className="font-normal normal-case">(optional)</span></span>
           <input className="input" name="best_race_time" placeholder="Cornwall 1:21:12" defaultValue={profile?.best_race_time ?? ""} maxLength={60} />
         </label>
       </div>
 
       <label className="block">
-        <span className="field-label">About you</span>
+        <span className="field-label">About you <span className="font-normal normal-case">(optional)</span></span>
         <textarea
           className="input min-h-28"
           name="bio"
@@ -95,7 +98,7 @@ export function ProfileForm({
       </label>
 
       <FormMessage state={state} />
-      <SubmitButton>{welcome ? "Save and continue" : "Save profile"}</SubmitButton>
+      <SubmitButton>{welcome ? "Next: what you're looking for" : "Save profile"}</SubmitButton>
     </ActionForm>
   );
 }

@@ -24,6 +24,7 @@ This is the first version: sign-up (18+), race profiles with ticket flags, a see
 1. In Supabase, open **SQL editor** and run, in order:
    - `supabase/migrations/20261029120000_core.sql` (tables, security rules, chat, photo storage)
    - `supabase/seed.sql` (KeltX and the Exeter 2027 race with its categories)
+   - `supabase/migrations/20261029170000_looking_for.sql` ("what you're looking for", matching and match alerts)
 
    Or with the Supabase CLI: `supabase link` then `supabase db push`.
 2. In Supabase **Authentication > URL configuration**, set the Site URL to your Vercel address and add `https://<your-domain>/auth/confirm` to the redirect URLs.
@@ -41,6 +42,8 @@ Keep `SUPABASE_SERVICE_ROLE_KEY` and `TICKET_TAILOR_API_KEY` server-only. Never 
 - **18+ only**: checked at sign-up, in the profile form, and by the database.
 - **Ticket flags**: everyone says whether they have a ticket. Adding an order reference checks with Ticket Tailor that the order exists, is for that race and category, and isn't cancelled, then shows **Verified ticket**. People can't set the badge themselves, and one order can only verify one listing.
 - **Privacy**: other athletes see first name, age (never date of birth), photo and race details. Email is never shown. Chats are visible only to their members. Organisers can't see chats.
+- **What you're looking for**: everyone picks a situation: a spare spot (has a ticket), a spot on a team, or a single looking for another single. Spare spots match the other two, and singles match each other, in an overlapping category. Each person can narrow it by partner 5km pace and area. Browse opens on **For you** (matches), with **Everyone** a tap away.
+- **Match alerts**: when a listing is saved, the database queues an alert for everyone it suits who has alerts on, and the app emails them through Resend (at most one email per person every 6 hours, plus a daily catch-up job). Push notifications come with the iOS app: the `alerts_push` switch is already stored.
 - **Requests first**: chat opens only when the other person (or relay captain) accepts.
 - **Relays**: a relay ticket holder's listing becomes a team listing ("needs 2 of 4"). Everyone accepted joins one team group chat, and the captain locks in each athlete.
 - **Lock-in**: the ticket holder proposes, the partner confirms. Both enter their full name and agree to share it with the organiser. Both listings then show **Matched** and leave the feed.

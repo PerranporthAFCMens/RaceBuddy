@@ -70,7 +70,7 @@ body {
   @apply text-center text-xl uppercase tracking-wide underline decoration-1 underline-offset-[6px];
 }
 @utility chip {
-  @apply inline-flex min-h-8 items-center border border-edge px-2.5 py-1 text-xs uppercase tracking-wide text-fg;
+  @apply inline-flex min-h-10 items-center border border-edge px-2.5 py-1 text-xs uppercase tracking-wide text-fg;
 }
 @utility chip-on {
   @apply border-accent text-accent;

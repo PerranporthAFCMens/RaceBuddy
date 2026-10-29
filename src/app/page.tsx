@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/Logo";
-import { TicketFlag } from "@/components/TicketFlag";
 import { getEvents, getUser } from "@/lib/data";
 import { formatEventDates } from "@/lib/format";
+import { SITUATIONS } from "@/lib/matching";
 
 const STEPS = [
-  ["Sign up", "Adults only. Tell us if you already have a ticket, or which categories you'd race."],
-  ["Build your race profile", "Category, 5km or race time, gym, home town and the race day you can do."],
-  ["Browse everyone", "Every athlete for the event, with and without tickets, plus relay teams with a gap."],
+  ["Say what you're looking for", "A spare spot to fill, a spot on a team, or another single to enter with. Adults only."],
+  ["Pick who you want", "Category, race day, 5km pace and where they train."],
+  ["See your matches", "People who fit you come first, and we email you when a new one joins."],
   ["Partner up", "Send a request. Chat opens once they accept, so no spam."],
   ["Lock in", "The ticket holder locks in their new partner, and both show as Matched."],
 ];
@@ -19,7 +19,7 @@ export default async function Home() {
 
   return (
     <main className="flex-1">
-      <section className="border-b border-fg px-4 py-16 text-center">
+      <section className="border-b border-fg px-4 py-12 text-center">
         <Logo size="lg" href={null} />
         <p className="mt-4 text-xs tracking-[0.3em] text-muted">THE PARTNER FINDER FOR FITNESS RACES</p>
         <h1 className="mx-auto mt-8 max-w-xl text-2xl uppercase sm:text-3xl">Lost your partner? Find a new one.</h1>
@@ -27,17 +27,29 @@ export default async function Home() {
           Doubles and relay racers who need a teammate, and athletes without a ticket who want in. Find each other,
           chat, and lock in your team before race day.
         </p>
-        <div className="mx-auto mt-8 flex max-w-xs flex-col gap-3">
-          <Link href="/login?mode=signup" className="btn-gold">
-            Find your partner
+        <div className="mx-auto mt-8 grid max-w-md gap-3 text-left">
+          <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted">What are you looking for?</p>
+          {SITUATIONS.map((s) => (
+            <Link
+              key={s.value}
+              href={`/login?mode=signup&situation=${s.value}`}
+              className="grid grid-cols-[40px_1fr_auto] items-center gap-3 border border-edge p-3 hover:border-accent"
+            >
+              <span className="grid h-10 w-10 place-items-center border border-accent font-display text-xl text-accent" aria-hidden>
+                {s.letter}
+              </span>
+              <span>
+                <b className="block text-sm uppercase">{s.title}</b>
+                <span className="text-sm text-muted">{s.sub}</span>
+              </span>
+              <span className="text-accent" aria-hidden>
+                →
+              </span>
+            </Link>
+          ))}
+          <Link href="/login" className="btn-white mt-2">
+            I have an account. Sign in
           </Link>
-          <Link href="/login" className="btn-white">
-            Sign in
-          </Link>
-        </div>
-        <div className="mt-8 flex justify-center gap-2">
-          <TicketFlag hasTicket verified />
-          <TicketFlag hasTicket={false} />
         </div>
       </section>
 

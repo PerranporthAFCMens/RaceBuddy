@@ -166,6 +166,21 @@ async function main() {
       .single(),
     "jess entry",
   );
+  // "Looking for" matching and alerts.
+  const { data: tomSituation } = await tom.client.from("entries").select("situation").eq("id", tomEntry.id).single();
+  check("a ticket holder's situation is spare spot", tomSituation?.situation === "spare_spot", tomSituation);
+  const { data: jessMatches } = await jess.client.rpc("my_matches", { p_event: event.id });
+  check("someone who needs a spot is matched with a spare spot", ((jessMatches as string[] | null) ?? []).includes(tomEntry.id), jessMatches);
+  const { data: tomAlerts } = await tom.client.from("match_alerts").select("match_entry_id");
+  check("the ticket holder gets an alert for the new match", (tomAlerts ?? []).length === 1, tomAlerts);
+  const { data: jessAlerts } = await jess.client.from("match_alerts").select("id");
+  check("athletes only see their own alerts", (jessAlerts ?? []).length === 0, jessAlerts);
+  await expectError(
+    "alerts cannot be written directly",
+    jess.client.from("match_alerts").insert({ user_id: jess.id, for_entry_id: tomEntry.id, match_entry_id: tomEntry.id }),
+    "permission denied",
+  );
+
   const { data: jessProfiles } = await jess.client.from("profiles").select("id");
   check("athletes only read their own raw profile", jessProfiles?.length === 1, jessProfiles?.length);
   const { data: tomCard } = await jess.client.from("athlete_profiles").select("*").eq("id", tom.id).single();

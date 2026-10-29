@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { isSituation } from "@/lib/matching";
 import type { ActionState } from "@/lib/types";
 
 const credentials = z.object({
@@ -36,12 +37,14 @@ export async function signUp(_: ActionState, formData: FormData): Promise<Action
 
   const supabase = await createClient();
   const origin = await siteOrigin();
+  const situation = formData.get("situation");
+  const start = `/me?welcome=1${isSituation(situation) ? `&situation=${situation}` : ""}`;
   const { data, error } = await supabase.auth.signUp({
     ...parsed.data,
-    options: { emailRedirectTo: `${origin}/auth/confirm?next=${encodeURIComponent("/me?welcome=1")}` },
+    options: { emailRedirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(start)}` },
   });
   if (error) return { error: error.message };
-  if (data.session) redirect("/me?welcome=1");
+  if (data.session) redirect(start);
   return { ok: true, message: "Nearly there. Check your email and tap the link to confirm your account." };
 }
 

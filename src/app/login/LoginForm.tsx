@@ -8,7 +8,7 @@ import { sendSignInLink, signIn, signUp } from "./actions";
 
 type Mode = "signin" | "signup" | "link";
 
-export function LoginForm({ initialMode, next }: { initialMode: Mode; next: string }) {
+export function LoginForm({ initialMode, next, situation }: { initialMode: Mode; next: string; situation: string | null }) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [signInState, signInAction] = useActionState(signIn, undefined);
   const [signUpState, signUpAction] = useActionState(signUp, undefined);
@@ -23,6 +23,7 @@ export function LoginForm({ initialMode, next }: { initialMode: Mode; next: stri
         {(["signin", "signup"] as const).map((m) => (
           <button
             key={m}
+            type="button"
             role="tab"
             aria-selected={mode === m}
             onClick={() => setMode(m)}
@@ -35,6 +36,7 @@ export function LoginForm({ initialMode, next }: { initialMode: Mode; next: stri
 
       <ActionForm action={action} className="space-y-4">
         <input type="hidden" name="next" value={next} />
+        {situation && <input type="hidden" name="situation" value={situation} />}
         <label className="block">
           <span className="field-label">Email</span>
           <input className="input" name="email" type="email" autoComplete="email" required />

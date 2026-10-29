@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getMyEntries, requireUser } from "@/lib/data";
 import { ageOn, parseRaceTime } from "@/lib/format";
+import { isSituation } from "@/lib/matching";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/lib/types";
@@ -74,7 +75,8 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
 
   revalidatePath("/", "layout");
   if (formData.get("welcome") === "1" && (await getMyEntries()).length === 0) {
-    redirect("/me/race?welcome=1");
+    const situation = formData.get("situation");
+    redirect(`/me/race?welcome=1${isSituation(situation) ? `&situation=${situation}` : ""}`);
   }
   return { ok: true, message: "Profile saved." };
 }
