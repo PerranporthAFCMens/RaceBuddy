@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseBaseUrl } from "./url";
 
-const PUBLIC_PATHS = ["/", "/login", "/auth", "/privacy", "/manifest.webmanifest", "/api/cron"];
+const PUBLIC_PATHS = ["/", "/login", "/auth", "/privacy", "/manifest.webmanifest", "/api/cron", "/styleguide"];
 
 function isPublic(pathname: string) {
   return PUBLIC_PATHS.some((p) => pathname === p || (p !== "/" && pathname.startsWith(`${p}/`)));

@@ -42,3 +42,8 @@ next-env.d.ts
 
 # allow the example env file
 !.env.example
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
