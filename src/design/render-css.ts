@@ -8,6 +8,7 @@ import {
   letterSpacing,
   lineHeights,
   motion,
+  displayVariation,
   spacingUnit,
 } from "./tokens.ts";
 
@@ -33,6 +34,7 @@ export function renderTokensCss(): string {
     "",
     `  --font-*: initial;`,
     ...Object.entries(fonts).map(([name, value]) => `  --font-${name}: ${value};`),
+    `  --font-display--font-variation-settings: ${displayVariation};`,
     "",
     "  --text-*: initial;",
     ...Object.entries(fontSizes).flatMap(([name, [size, leading]]) => [

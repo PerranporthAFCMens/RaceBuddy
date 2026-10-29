@@ -7,13 +7,13 @@ export function Logo({ size = "sm", href = "/" }: { size?: "sm" | "lg"; href?: s
     <span
       className={
         size === "lg"
-          ? "inline-block text-4xl font-bold leading-none tracking-brand sm:text-6xl"
-          : "inline-block text-sm font-bold leading-none tracking-brand"
+          ? "inline-block font-display text-3xl leading-none tracking-widest sm:text-5xl"
+          : "inline-block font-display text-sm leading-none tracking-widest"
       }
       aria-label={brand.name}
     >
       {brand.wordmark.lead}
-      <b className="font-display font-normal tracking-normal text-accent">{brand.wordmark.accent}</b>
+      <span className="text-accent">{brand.wordmark.accent}</span>
     </span>
   );
   return href ? <Link href={href}>{mark}</Link> : mark;

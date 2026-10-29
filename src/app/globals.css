@@ -49,7 +49,7 @@ body {
 
 /* Headings */
 @utility heading {
-  @apply text-center text-xl uppercase tracking-wide underline decoration-1 underline-offset-6;
+  @apply text-center font-display text-lg uppercase underline decoration-1 underline-offset-6;
 }
 
 /* Filter chips */

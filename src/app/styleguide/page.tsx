@@ -34,6 +34,7 @@ const SIZE: Record<keyof typeof fontSizes, string> = {
   "2xl": "text-2xl",
   "3xl": "text-3xl",
   "4xl": "text-4xl",
+  "5xl": "text-5xl",
   "6xl": "text-6xl",
 };
 
@@ -75,7 +76,7 @@ export default function Styleguide() {
             </li>
           ))}
         </ul>
-        <p className="font-display text-4xl uppercase leading-none">Display · Anton</p>
+        <p className="font-display text-4xl uppercase leading-none">Display · Mona Sans wide</p>
         <p className="text-base">
           Body copy is Open Sans at 16px. Keep sentences short and plain: say what happens next.
         </p>

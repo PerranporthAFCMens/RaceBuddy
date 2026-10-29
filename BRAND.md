@@ -70,9 +70,15 @@ Contrast (WCAG 2.2 AA), checked by `npm test`:
 
 ## Type
 
-- **Open Sans** (`font-sans`, default) for everything.
-- **Anton** (`font-display`) for big numbers, profile names and the wordmark
-  accent. Always uppercase. Never for sentences.
+One free family, **Mona Sans** (OFL), chosen so the app doesn't look like
+every other generated site. It has a width axis, so it does two jobs:
+
+- `font-sans` (default): Mona Sans at normal width, for all text.
+- `font-display`: the same family stretched wide and black (`wdth` 125,
+  `wght` 900, set by the token, so weight classes don't change it). Used for
+  the wordmark, page and section headings, profile names, big numbers and
+  Oops. Always uppercase. Never for sentences. Wide letters take room, so go
+  one size smaller than you would with a condensed face.
 - Weights: `font-normal` (400), `font-semibold` (600, buttons, labels),
   `font-bold` (700, names, flags). Nothing else exists.
 - Headings, buttons, labels, flags and nav are UPPERCASE via the `uppercase`
@@ -86,14 +92,17 @@ Contrast (WCAG 2.2 AA), checked by `npm test`:
 | `text-sm` | 14 / 20px | Secondary copy, buttons, lists |
 | `text-base` | 16 / 24px | Body, inputs (16px stops iOS zoom) |
 | `text-lg` | 18 / 28px | Lead paragraph, step titles |
-| `text-xl` | 20 / 28px | Section headings (`heading`) |
-| `text-2xl` | 24 / 32px | Page titles |
-| `text-3xl` | 30 / 36px | Hero title, step numbers |
-| `text-4xl` | 36px, tight | Profile names (display) |
-| `text-6xl` | 60px, tight | Hero wordmark, Oops |
+| `text-xl` | 20 / 28px | Small display headings |
+| `text-2xl` | 24 / 32px | Page titles, hero title (display) |
+| `text-3xl` | 30 / 36px | Profile names, step numbers, wordmark (display) |
+| `text-4xl` | 36px, tight | Large display moments |
+| `text-5xl` | 48px, tight | Hero wordmark on desktop |
+| `text-6xl` | 60px, tight | Oops |
+
+Section headings (`heading`) are display at `text-lg`.
 
 Letter spacing: `tracking-wide` (buttons, headings), `tracking-wider` (labels,
-nav), `tracking-widest` (flags), `tracking-brand` (wordmark and tagline only).
+nav), `tracking-widest` (flags, wordmark), `tracking-brand` (tagline only).
 
 ## Layout and spacing
 

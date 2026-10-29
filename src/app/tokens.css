@@ -38,8 +38,9 @@
   --color-danger: var(--danger);
 
   --font-*: initial;
-  --font-sans: var(--font-open-sans), "Helvetica Neue", Arial, sans-serif;
-  --font-display: var(--font-anton), Impact, "Arial Narrow Bold", sans-serif;
+  --font-sans: var(--font-mona-sans), "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-mona-sans), "Arial Black", "Helvetica Neue", sans-serif;
+  --font-display--font-variation-settings: "wdth" 125, "wght" 900;
 
   --text-*: initial;
   --text-2xs: 0.6875rem;
@@ -60,6 +61,8 @@
   --text-3xl--line-height: 2.25rem;
   --text-4xl: 2.25rem;
   --text-4xl--line-height: 1;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1;
   --text-6xl: 3.75rem;
   --text-6xl--line-height: 1;
 

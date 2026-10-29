@@ -62,13 +62,20 @@ export const contrastPairs: { fg: ColorToken; bg: ColorToken; min: 3 | 4.5; use:
   { fg: "accent", bg: "bg", min: 3, use: "Focus ring" },
 ];
 
-/** Typefaces. Loaded with next/font in src/app/layout.tsx. */
+/**
+ * Typefaces. One family, Mona Sans (free, OFL), loaded with next/font in
+ * src/app/layout.tsx. It has a width axis: normal width for text, stretched
+ * wide and heavy for display, like lettering on a race bib.
+ */
 export const fonts = {
   /** Everything by default. */
-  sans: 'var(--font-open-sans), "Helvetica Neue", Arial, sans-serif',
-  /** Big numbers, profile names, the wordmark accent. Always uppercase. */
-  display: 'var(--font-anton), Impact, "Arial Narrow Bold", sans-serif',
+  sans: 'var(--font-mona-sans), "Helvetica Neue", Arial, sans-serif',
+  /** Headings, names, big numbers, the wordmark. Always uppercase. */
+  display: 'var(--font-mona-sans), "Arial Black", "Helvetica Neue", sans-serif',
 } as const;
+
+/** Variable-font settings for the display face: wide and black. */
+export const displayVariation = '"wdth" 125, "wght" 900';
 
 /** Type scale: [font-size, line-height]. Mobile first; 16px base so iOS never zooms inputs. */
 export const fontSizes = {
@@ -81,7 +88,8 @@ export const fontSizes = {
   "2xl": ["1.5rem", "2rem"], // 24px: page titles
   "3xl": ["1.875rem", "2.25rem"], // 30px: hero titles, step numbers
   "4xl": ["2.25rem", "1"], // 36px: profile names (display)
-  "6xl": ["3.75rem", "1"], // 60px: hero wordmark (desktop)
+  "5xl": ["3rem", "1"], // 48px: hero wordmark (desktop)
+  "6xl": ["3.75rem", "1"], // 60px: Oops
 } as const;
 
 export const fontWeights = {

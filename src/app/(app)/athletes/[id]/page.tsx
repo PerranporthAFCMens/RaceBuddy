@@ -67,7 +67,7 @@ export default async function AthletePage({ params }: PageProps<"/athletes/[id]"
           <div className="h-28 bg-linear-to-br from-soft to-bg" aria-hidden />
         )}
         <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-bg/90 to-transparent p-4">
-          <h1 className="font-display text-4xl uppercase leading-none tracking-wide">{title}</h1>
+          <h1 className="font-display text-3xl uppercase leading-none break-words">{title}</h1>
           {isTeam && (
             <p className="mt-1 text-sm text-accent">
               Relay · needs {entry.spots_needed} of 4

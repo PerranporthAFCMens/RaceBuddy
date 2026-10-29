@@ -51,7 +51,7 @@ async function auditStyles(page: Page): Promise<Finding[]> {
           checkColour(el, `border-${side}-color`, s.getPropertyValue(`border-${side}-color`));
       }
 
-      if (hasText && !/Open Sans|Anton/.test(s.fontFamily)) out.push({ el: describe(el), prop: "font-family", value: s.fontFamily });
+      if (hasText && !/Mona Sans/.test(s.fontFamily)) out.push({ el: describe(el), prop: "font-family", value: s.fontFamily });
       if (hasText && !["400", "600", "700"].includes(s.fontWeight))
         out.push({ el: describe(el), prop: "font-weight", value: s.fontWeight });
 

@@ -23,7 +23,7 @@ export default async function Home() {
       <section className="border-b border-fg px-4 py-12 text-center">
         <Logo size="lg" href={null} />
         <p className="mt-4 text-xs uppercase tracking-brand text-muted">{brand.tagline}</p>
-        <h1 className="mx-auto mt-8 max-w-xl text-2xl uppercase sm:text-3xl">Lost your partner? Find a new one.</h1>
+        <h1 className="mx-auto mt-8 max-w-xl font-display text-2xl uppercase sm:text-3xl">Lost your partner? Find a new one.</h1>
         <p className="mx-auto mt-4 max-w-md text-muted">
           Doubles and relay racers who need a teammate, and athletes without a ticket who want in. Find each other,
           chat, and lock in your team before race day.
