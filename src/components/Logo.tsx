@@ -1,16 +1,19 @@
 import Link from "next/link";
+import { brand } from "@/design/brand";
 
+/** Placeholder wordmark while the product name is under review. Text comes from src/design/brand.ts. */
 export function Logo({ size = "sm", href = "/" }: { size?: "sm" | "lg"; href?: string | null }) {
   const mark = (
     <span
       className={
         size === "lg"
-          ? "inline-block text-4xl font-bold leading-none tracking-[0.32em] sm:text-6xl"
-          : "inline-block text-sm font-bold leading-none tracking-[0.22em]"
+          ? "inline-block font-display text-3xl leading-none tracking-widest sm:text-5xl"
+          : "inline-block font-display text-sm leading-none tracking-widest"
       }
-      aria-label="Race Buddy"
+      aria-label={brand.name}
     >
-      RACE BUD<span className="tracking-[0.06em]">D</span><b className="font-display font-normal tracking-normal text-accent text-[1.2em]">Y</b>
+      {brand.wordmark.lead}
+      <span className="text-accent">{brand.wordmark.accent}</span>
     </span>
   );
   return href ? <Link href={href}>{mark}</Link> : mark;

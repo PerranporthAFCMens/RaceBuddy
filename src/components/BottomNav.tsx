@@ -50,7 +50,7 @@ export function BottomNav({ badges }: { badges: Partial<Record<string, number>> 
               <Link
                 href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative flex h-14 flex-col items-center justify-center gap-1 text-[0.68rem] font-semibold uppercase tracking-wider ${
+                className={`relative flex h-14 flex-col items-center justify-center gap-1 text-2xs font-semibold uppercase tracking-wider ${
                   active ? "text-accent" : "text-muted hover:text-fg"
                 }`}
               >
@@ -59,7 +59,7 @@ export function BottomNav({ badges }: { badges: Partial<Record<string, number>> 
                     {ICONS[tab.href]}
                   </svg>
                   {badge ? (
-                    <span className="absolute -top-1.5 left-3.5 inline-grid min-w-4.5 place-items-center bg-accent px-1 text-[0.62rem] leading-4.5 text-accent-ink">
+                    <span className="badge absolute -top-1.5 left-3.5">
                       {badge}
                       <span className="sr-only"> new</span>
                     </span>

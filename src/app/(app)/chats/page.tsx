@@ -79,7 +79,7 @@ export default async function ChatsPage() {
                 <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-2 text-sm font-bold uppercase">
                     <span className="truncate">{r.title}</span>
-                    {r.kind === "team" && <span className="chip min-h-0 py-0 text-[0.6rem]">Team</span>}
+                    {r.kind === "team" && <span className="flag-line">Team</span>}
                   </p>
                   <p className={`truncate text-sm ${r.unread ? "text-fg" : "text-muted"}`}>
                     {r.last ? `${r.last.sender_id === user.id ? "You: " : ""}${r.last.body}` : `New chat · ${r.event ?? ""}`}

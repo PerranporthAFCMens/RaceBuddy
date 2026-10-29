@@ -16,13 +16,45 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx next typegen
+      # Brand lint rules (no raw colours, default palette or arbitrary sizes) run here too.
       - run: npm run lint
       - run: npm run typecheck
+      - run: npm run tokens:check
+      # Includes the colour contrast and stylesheet brand tests.
       - run: npm test
       - run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+
+  brand:
+    # Playwright: brand colours/fonts/corners on screen, accessibility, tap targets, screenshots.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+        env:
+          # Nothing listens here, so pages show their signed-out, no-data state.
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-placeholder
+      - run: npm run test:brand
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: e2e-placeholder
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: brand-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
 
   database:
     runs-on: ubuntu-latest

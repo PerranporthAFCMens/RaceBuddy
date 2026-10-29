@@ -67,7 +67,7 @@ export function EntryForm({
             <label
               key={opt.value}
               className={`grid cursor-pointer grid-cols-[36px_1fr] items-start gap-3 border p-3 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent ${
-                situation === opt.value ? "border-accent bg-[#0f0c03]" : "border-edge"
+                situation === opt.value ? "border-accent bg-accent/10" : "border-edge"
               }`}
             >
               <span
@@ -168,7 +168,7 @@ export function EntryForm({
                           onChange={(e) =>
                             setWanted((w) => (e.target.checked ? [...w, c.id] : w.filter((id) => id !== c.id)))
                           }
-                          className="h-4 w-4 shrink-0 accent-[var(--accent)]"
+                          className="h-4 w-4 shrink-0 accent-accent"
                         />
                         {c.name}
                       </label>
@@ -237,7 +237,7 @@ export function EntryForm({
                   name="partner_regions"
                   value={r}
                   defaultChecked={regions.includes(r)}
-                  className="h-4 w-4 shrink-0 accent-[var(--accent)]"
+                  className="h-4 w-4 shrink-0 accent-accent"
                 />
                 {r}
               </label>
@@ -273,7 +273,7 @@ export function EntryForm({
           />
           <span
             aria-hidden
-            className="relative h-6 w-11 shrink-0 bg-edge after:absolute after:top-1 after:left-1 after:h-4 after:w-4 after:bg-muted after:transition-all peer-checked:bg-accent peer-checked:after:left-6 peer-checked:after:bg-black"
+            className="relative h-6 w-11 shrink-0 bg-edge after:absolute after:top-1 after:left-1 after:h-4 after:w-4 after:bg-muted after:transition-all peer-checked:bg-accent peer-checked:after:left-6 peer-checked:after:bg-accent-ink"
           />
         </label>
 
@@ -284,7 +284,7 @@ export function EntryForm({
               name="status"
               value="paused"
               defaultChecked={entry.status === "paused"}
-              className="h-5 w-5 accent-[var(--accent)]"
+              className="h-5 w-5 accent-accent"
             />
             Hide me from the feed for now
           </label>

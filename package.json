@@ -11,7 +11,11 @@
     "test:live": "node --env-file-if-exists=.env.local scripts/live-check.mts",
     "sync:tickettailor": "node --env-file-if-exists=.env.local scripts/sync-ticket-tailor.mts",
     "test:db": "bash supabase/tests/run-tests.sh",
-    "test": "node --test --experimental-strip-types \"src/**/*.test.ts\""
+    "test": "node --test --experimental-strip-types \"src/**/*.test.ts\"",
+    "tokens": "node --experimental-strip-types scripts/build-tokens.mts",
+    "tokens:check": "node --experimental-strip-types scripts/build-tokens.mts --check",
+    "test:brand": "playwright test",
+    "test:brand:update": "playwright test --update-snapshots"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -23,6 +27,8 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

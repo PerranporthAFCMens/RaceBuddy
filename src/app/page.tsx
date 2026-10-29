@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/Logo";
+import { brand } from "@/design/brand";
 import { getEvents, getUser } from "@/lib/data";
 import { formatEventDates } from "@/lib/format";
 import { SITUATIONS } from "@/lib/matching";
@@ -21,8 +22,8 @@ export default async function Home() {
     <main className="flex-1">
       <section className="border-b border-fg px-4 py-12 text-center">
         <Logo size="lg" href={null} />
-        <p className="mt-4 text-xs tracking-[0.3em] text-muted">THE PARTNER FINDER FOR FITNESS RACES</p>
-        <h1 className="mx-auto mt-8 max-w-xl text-2xl uppercase sm:text-3xl">Lost your partner? Find a new one.</h1>
+        <p className="mt-4 text-xs uppercase tracking-brand text-muted">{brand.tagline}</p>
+        <h1 className="mx-auto mt-8 max-w-xl font-display text-2xl uppercase sm:text-3xl">Lost your partner? Find a new one.</h1>
         <p className="mx-auto mt-4 max-w-md text-muted">
           Doubles and relay racers who need a teammate, and athletes without a ticket who want in. Find each other,
           chat, and lock in your team before race day.
@@ -55,7 +56,7 @@ export default async function Home() {
 
       {events.length > 0 && (
         <section className="border-b border-fg px-4 py-12">
-          <h2 className="heading mb-6">Races on Race Buddy</h2>
+          <h2 className="heading mb-6">Races on {brand.name}</h2>
           <ul className="mx-auto grid max-w-xl gap-3">
             {events.map((e) => (
               <li key={e.id} className="card flex items-center justify-between gap-3 p-4">
@@ -93,7 +94,7 @@ export default async function Home() {
       </section>
 
       <footer className="px-4 pb-10 text-center text-xs text-muted">
-        Race Buddy is 18+ only. <Link href="/privacy" className="underline">Privacy</Link>
+        {brand.name} is 18+ only. <Link href="/privacy" className="underline">Privacy</Link>
       </footer>
     </main>
   );
