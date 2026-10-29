@@ -46,3 +46,11 @@ test("order references", () => {
   assert.equal(normaliseOrderReference("or_12345678"), "or_12345678");
   assert.equal(normaliseOrderReference("hello"), null);
 });
+
+test("supabaseBaseUrl trims /rest/v1 and trailing slashes", async () => {
+  const { supabaseBaseUrl } = await import("./supabase/url.ts");
+  assert.equal(supabaseBaseUrl("https://abc.supabase.co/rest/v1/"), "https://abc.supabase.co");
+  assert.equal(supabaseBaseUrl("https://abc.supabase.co/rest/v1"), "https://abc.supabase.co");
+  assert.equal(supabaseBaseUrl(" https://abc.supabase.co/ "), "https://abc.supabase.co");
+  assert.equal(supabaseBaseUrl("https://abc.supabase.co"), "https://abc.supabase.co");
+});

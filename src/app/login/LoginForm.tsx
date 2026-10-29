@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { FormMessage } from "@/components/FormMessage";
+import { ActionForm } from "@/components/ActionForm";
 import { SubmitButton } from "@/components/SubmitButton";
 import { sendSignInLink, signIn, signUp } from "./actions";
 
@@ -32,7 +33,7 @@ export function LoginForm({ initialMode, next }: { initialMode: Mode; next: stri
         ))}
       </div>
 
-      <form action={action} className="space-y-4">
+      <ActionForm action={action} className="space-y-4">
         <input type="hidden" name="next" value={next} />
         <label className="block">
           <span className="field-label">Email</span>
@@ -63,7 +64,7 @@ export function LoginForm({ initialMode, next }: { initialMode: Mode; next: stri
         <SubmitButton pendingText="One moment…">
           {mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Email me a link"}
         </SubmitButton>
-      </form>
+      </ActionForm>
 
       <button
         type="button"

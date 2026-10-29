@@ -8,6 +8,7 @@
 // TICKET_TAILOR_API_KEY in the environment (or .env.local).
 import { createClient } from "@supabase/supabase-js";
 import { parseTicketType } from "../src/lib/ticket-tailor/parse.ts";
+import { supabaseBaseUrl } from "../src/lib/supabase/url.ts";
 
 const ORGANISER_SLUG = process.env.ORGANISER_SLUG ?? "keltx";
 
@@ -21,7 +22,7 @@ function need(name: string): string {
 }
 
 const ttKey = need("TICKET_TAILOR_API_KEY");
-const supabase = createClient(need("NEXT_PUBLIC_SUPABASE_URL"), need("SUPABASE_SERVICE_ROLE_KEY"), {
+const supabase = createClient(supabaseBaseUrl(need("NEXT_PUBLIC_SUPABASE_URL")), need("SUPABASE_SERVICE_ROLE_KEY"), {
   auth: { persistSession: false },
 });
 

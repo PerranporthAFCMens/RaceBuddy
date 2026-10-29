@@ -2,6 +2,7 @@
 import { useActionState } from "react";
 import { FormMessage } from "@/components/FormMessage";
 import { PhotoPicker } from "@/components/PhotoPicker";
+import { ActionForm } from "@/components/ActionForm";
 import { SubmitButton } from "@/components/SubmitButton";
 import { formatRaceTime, REGIONS } from "@/lib/format";
 import type { Profile } from "@/lib/types";
@@ -21,7 +22,7 @@ export function ProfileForm({
   maxDob.setFullYear(maxDob.getFullYear() - 18);
 
   return (
-    <form action={action} className="space-y-5">
+    <ActionForm action={action} className="space-y-5">
       <input type="hidden" name="welcome" value={welcome ? "1" : "0"} />
       <PhotoPicker name="photo" currentUrl={photoUrl} />
 
@@ -95,6 +96,6 @@ export function ProfileForm({
 
       <FormMessage state={state} />
       <SubmitButton>{welcome ? "Save and continue" : "Save profile"}</SubmitButton>
-    </form>
+    </ActionForm>
   );
 }

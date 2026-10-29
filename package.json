@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "test:live": "node --env-file-if-exists=.env.local scripts/live-check.mts",
     "sync:tickettailor": "node --env-file-if-exists=.env.local scripts/sync-ticket-tailor.mts",
     "test:db": "bash supabase/tests/run-tests.sh",
     "test": "node --test --experimental-strip-types \"src/**/*.test.ts\""

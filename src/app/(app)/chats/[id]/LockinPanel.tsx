@@ -1,6 +1,7 @@
 "use client";
 import { useActionState } from "react";
 import { FormMessage } from "@/components/FormMessage";
+import { ActionForm } from "@/components/ActionForm";
 import { SubmitButton } from "@/components/SubmitButton";
 import { cancelLockin, proposeLockin, respondToLockin } from "./actions";
 
@@ -75,7 +76,7 @@ export function LockinPanel({ conversationId, view }: { conversationId: string; 
     return (
       <section className="space-y-3 border border-accent p-3">
         <p className="text-sm font-bold uppercase tracking-wide text-accent">{view.proposerName} wants to lock you in</p>
-        <form action={respondAction} className="space-y-3">
+        <ActionForm action={respondAction} className="space-y-3">
           <input type="hidden" name="lockin_id" value={view.lockinId} />
           <input type="hidden" name="conversation_id" value={conversationId} />
           <NameAndConsent />
@@ -93,7 +94,7 @@ export function LockinPanel({ conversationId, view }: { conversationId: string; 
               Not yet
             </button>
           </div>
-        </form>
+        </ActionForm>
       </section>
     );
   }
@@ -103,7 +104,7 @@ export function LockinPanel({ conversationId, view }: { conversationId: string; 
       <summary className="cursor-pointer px-3 py-2 text-sm font-bold uppercase tracking-wide text-accent">
         {view.isTeam ? "Lock in a team member" : `Lock in ${view.partners[0]?.name ?? "your partner"}`}
       </summary>
-      <form action={proposeAction} className="space-y-3 p-3 pt-1">
+      <ActionForm action={proposeAction} className="space-y-3 p-3 pt-1">
         <input type="hidden" name="conversation_id" value={conversationId} />
         {view.partners.length === 1 ? (
           <input type="hidden" name="partner_id" value={view.partners[0]!.id} />
@@ -123,7 +124,7 @@ export function LockinPanel({ conversationId, view }: { conversationId: string; 
         <NameAndConsent />
         <FormMessage state={proposeState} />
         <SubmitButton pendingText="Sending…">Lock in partner</SubmitButton>
-      </form>
+      </ActionForm>
     </details>
   );
 }
@@ -140,7 +141,7 @@ export function ReportForm({
   const [state, formAction] = useActionState(action, undefined);
   if (state?.ok) return <FormMessage state={state} />;
   return (
-    <form action={formAction} className="space-y-3">
+    <ActionForm action={formAction} className="space-y-3">
       <input type="hidden" name="conversation_id" value={conversationId} />
       {people.length === 1 ? (
         <input type="hidden" name="user_id" value={people[0]!.id} />
@@ -158,6 +159,6 @@ export function ReportForm({
       <SubmitButton className="btn-line w-full" pendingText="Sending…">
         Send report
       </SubmitButton>
-    </form>
+    </ActionForm>
   );
 }
