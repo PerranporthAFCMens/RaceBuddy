@@ -25,6 +25,7 @@ This is the first version: sign-up (18+), race profiles with ticket flags, a see
    - `supabase/migrations/20261029120000_core.sql` (tables, security rules, chat, photo storage)
    - `supabase/seed.sql` (KeltX and the Exeter 2027 race with its categories)
    - `supabase/migrations/20261029170000_looking_for.sql` ("what you're looking for", matching and match alerts)
+   - `supabase/migrations/20261030120000_test_race.sql` (a test race for trying things out: on the dev site only)
 
    Or with the Supabase CLI: `supabase link` then `supabase db push`.
 2. In Supabase **Authentication > URL configuration**, set the Site URL to your Vercel address and add `https://<your-domain>/auth/confirm` to the redirect URLs.
