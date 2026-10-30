@@ -66,12 +66,20 @@ async function main() {
 
   // Starter data -------------------------------------------------------------
   const anon = createClient(url, anonKey, { auth: { persistSession: false } });
-  const event = await one(
+  // Real races are only read. Everything this check creates goes on the test race.
+  const keltx = await one(
     anon.from("events").select("id").eq("slug", "keltx-exeter-2027").single(),
-    "load event",
+    "load KeltX event",
   );
+  const { data: keltxCats } = await anon.from("categories").select("id").eq("event_id", keltx.id);
+  check("signed-out visitors see KeltX's 14 categories", keltxCats?.length === 14, keltxCats?.length);
+  const event = await one(
+    anon.from("events").select("id, is_active, is_test").eq("slug", "test-race").single(),
+    "load test race (run supabase/migrations/20261030120000_test_race.sql first)",
+  );
+  check("the test race is marked as a test and not active", event.is_test === true && event.is_active === false, event);
   const { data: cats } = await anon.from("categories").select("id, tt_ticket_type_id, gender").eq("event_id", event.id);
-  check("signed-out visitors see the 14 categories", cats?.length === 14, cats?.length);
+  check("signed-out visitors see the test race's 2 categories", cats?.length === 2, cats?.length);
   const cat = (tt: string) => cats!.find((c) => c.tt_ticket_type_id === tt)!.id as string;
   await expectError("signed-out visitors cannot read the feed", anon.from("feed_entries").select("id"), "permission denied");
   await expectError("signed-out visitors cannot read profiles", anon.from("profiles").select("id"), "permission denied");
@@ -119,7 +127,7 @@ async function main() {
         user_id: tom.id,
         event_id: event.id,
         has_ticket: true,
-        category_id: cat("tt_7001178"),
+        category_id: cat("test_mixed_doubles"),
         ticket_verified: true,
         status: "matched",
         order_reference: `or_${run}`,
@@ -192,7 +200,7 @@ async function main() {
   const caraEntry = await one(
     cara.client
       .from("entries")
-      .insert({ user_id: cara.id, event_id: event.id, has_ticket: true, category_id: cat("tt_7001164"), team_name: `Team ${run}`, spots_needed: 2 })
+      .insert({ user_id: cara.id, event_id: event.id, has_ticket: true, category_id: cat("test_mixed_relay"), team_name: `Team ${run}`, spots_needed: 2 })
       .select("id")
       .single(),
     "cara entry",

@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isLive } from "@/lib/site-env";
 import type { Category, Entry, EventRow, Profile } from "@/lib/types";
 
 /** The signed-in user's id and email, checked against Supabase's signing keys. */
@@ -38,12 +39,15 @@ export async function requireProfile() {
 export const getEvents = cache(async (): Promise<EventRow[]> => {
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);
-  const { data } = await supabase
+  let query = supabase
     .from("events")
     .select("id, slug, name, venue, starts_on, ends_on, ticket_url, name_change_cutoff, organiser:organisers(name, website_url)")
-    .eq("is_active", true)
     .gte("ends_on", today)
     .order("starts_on");
+  // The test race (is_test) is for trying things out: shown on the dev site
+  // and locally, never on the live site. See ENVIRONMENT.md.
+  query = isLive() ? query.eq("is_active", true).eq("is_test", false) : query.or("is_active.eq.true,is_test.eq.true");
+  const { data } = await query;
   return (data as unknown as EventRow[]) ?? [];
 });
 
