@@ -5,6 +5,7 @@ import { Logo } from "@/components/Logo";
 import { MatchedFlag, TicketFlag } from "@/components/TicketFlag";
 import { brand } from "@/design/brand";
 import { colors, fontSizes, type ColorToken } from "@/design/tokens";
+import { isLive } from "@/lib/site-env";
 
 export const metadata: Metadata = { title: "Styleguide", robots: { index: false } };
 
@@ -43,7 +44,7 @@ const SIZE: Record<keyof typeof fontSizes, string> = {
  * it, and the Playwright brand tests screenshot it. Hidden on the live site.
  */
 export default function Styleguide() {
-  if (process.env.VERCEL_ENV === "production") notFound();
+  if (isLive()) notFound();
 
   return (
     <main className="mx-auto w-full max-w-xl flex-1 space-y-12 px-4 py-10">
