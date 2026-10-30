@@ -9,7 +9,7 @@ Short current-state page. Per-change notes are in `docs/notes/`.
 
 ## Database
 
-Migrations applied: `20261029120000_core.sql`, `seed.sql`, `20261029170000_looking_for.sql`. Waiting for Adam to run: `20261030120000_test_race.sql`. Adam runs SQL by hand in the Supabase SQL editor; merging does not apply it.
+Migrations applied (checked 2026-10-30): `20261029120000_core.sql`, `seed.sql`, `20261030120000_test_race.sql`. NOT yet applied: `20261029170000_looking_for.sql` (the live site's code already needs it). Adam runs SQL by hand in the Supabase SQL editor; merging does not apply it.
 
 ## Next work
 
