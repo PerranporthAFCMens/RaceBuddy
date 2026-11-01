@@ -76,14 +76,14 @@ export function ProfileForm({
         </label>
       </div>
 
-      <TimeInput name="five_k" label="5km time" units={["m", "s"]} seconds={profile?.five_k_seconds} placeholders={{ m: "22", s: "40" }} />
+      <TimeInput name="five_k" label="5km time" units={["m", "s"]} seconds={profile?.five_k_seconds} minMinutes={10} maxMinutes={60} />
       <TimeInput
         name="best_race"
         label="Previous race time"
         units={["h", "m", "s"]}
         seconds={parseFinishTime(profile?.best_race_time)}
         optional
-        placeholders={{ h: "1", m: "21", s: "12" }}
+        maxHours={5}
       />
 
       <label className="block">

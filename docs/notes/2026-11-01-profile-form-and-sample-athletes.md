@@ -14,3 +14,7 @@
   accounts ("must be owner of table users"), so it uses the admin API like
   `test:live`. 12 have a spare spot, 10 need one, 8 are singles. They can't
   sign in and get no match emails.
+- Later the same day Adam tried four time-entry designs and picked scroll
+  wheels: `TimeInput` now uses native selects (the iPhone shows its own wheel
+  picker). 5km minutes run 10–60; race time hours 0–5. Form field names and
+  what is saved are unchanged.

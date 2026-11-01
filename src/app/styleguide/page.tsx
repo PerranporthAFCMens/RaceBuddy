@@ -129,8 +129,8 @@ export default function Styleguide() {
             <input className="input" type="date" defaultValue="1990-04-12" />
           </label>
         </div>
-        <TimeInput name="sg_five_k" label="5km time" units={["m", "s"]} seconds={1360} />
-        <TimeInput name="sg_race" label="Previous race time" units={["h", "m", "s"]} optional placeholders={{ h: "1", m: "21", s: "12" }} />
+        <TimeInput name="sg_five_k" label="5km time" units={["m", "s"]} seconds={1360} minMinutes={10} maxMinutes={60} />
+        <TimeInput name="sg_race" label="Previous race time" units={["h", "m", "s"]} optional maxHours={5} />
         <label className="flex items-center gap-3 text-sm">
           <input type="checkbox" className="h-5 w-5 accent-accent" defaultChecked />
           I am 18 or over
