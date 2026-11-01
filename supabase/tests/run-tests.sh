@@ -20,4 +20,5 @@ psql_ -f "$here/supabase-stub.sql"
 for f in "$root"/migrations/*.sql; do psql_ -f "$f"; done
 psql_ -f "$root/seed.sql"
 psql_ -o /dev/null -f "$here/rules.sql"
+psql_ -o /dev/null -f "$here/security.sql"
 echo "All database tests passed."
