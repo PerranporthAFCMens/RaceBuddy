@@ -6,17 +6,13 @@ import { createClient } from "@/lib/supabase/server";
 import { isSituation } from "@/lib/matching";
 import type { ActionState } from "@/lib/types";
 import { siteUrl } from "@/lib/site-env";
+import { safeNext } from "@/lib/safe-next";
 import { brand } from "@/design/brand";
 
 const credentials = z.object({
   email: z.email("Enter a valid email address.").trim().toLowerCase(),
   password: z.string().min(8, "Passwords need at least 8 characters."),
 });
-
-function safeNext(next: FormDataEntryValue | null) {
-  const value = typeof next === "string" ? next : "";
-  return value.startsWith("/") && !value.startsWith("//") ? value : "/browse";
-}
 
 async function siteOrigin() {
   const h = await headers();
