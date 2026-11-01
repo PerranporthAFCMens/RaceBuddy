@@ -8,8 +8,9 @@
   component, shown on `/styleguide`. Previous race time is still saved as text,
   now always as `h:mm:ss`; older free-text times ("Cornwall 1:21:12", "1:23")
   are read back into the boxes.
-- `supabase/samples/`: 30 made-up athletes with Test Race listings, for seeing
-  browse and matches on the dev site. Not a migration; Adam runs it by hand and
-  removes it with `sample-athletes-remove.sql`. Checked on the local test
-  database: 30 listings (12 with a spare spot, 10 needing one, 8 singles), safe
-  to run twice, no match emails queued, removal leaves nothing behind.
+- `supabase/samples/athletes.json` + `npm run samples:add` / `samples:remove`:
+  30 made-up athletes with Test Race listings, for seeing browse and matches on
+  the dev site. First written as SQL, but the Supabase SQL editor can't create
+  accounts ("must be owner of table users"), so it uses the admin API like
+  `test:live`. 12 have a spare spot, 10 need one, 8 are singles. They can't
+  sign in and get no match emails.
