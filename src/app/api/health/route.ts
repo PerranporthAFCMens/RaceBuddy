@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getEvents } from "@/lib/data";
 import { siteEnv } from "@/lib/site-env";
 
+// security-check: public route
 // Health check for the smoke test (scripts/smoke-check.mts) and uptime checks.
 // Public and read-only: it says which site and commit is running, whether the
 // database answers, and whether the test race is listed. Nothing secret.
