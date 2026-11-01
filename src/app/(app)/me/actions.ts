@@ -50,11 +50,11 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
   }
   const fiveK = durationFromParts({ m: five_k_m, s: five_k_s });
   if (Number.isNaN(fiveK) || (fiveK !== null && (fiveK < 600 || fiveK > 3600))) {
-    return { error: "Check your 5km time: minutes (10 to 60) and seconds (0 to 59), for example 22 min 40 sec." };
+    return { error: "Check your 5km time: pick the minutes (10 to 60) and seconds." };
   }
   const bestRace = durationFromParts({ h: best_race_h, m: best_race_m, s: best_race_s });
   if (Number.isNaN(bestRace) || bestRace === 0 || (bestRace !== null && bestRace > 10 * 3600)) {
-    return { error: "Check your previous race time: hours, then minutes and seconds (0 to 59), for example 1 hr 21 min 12 sec." };
+    return { error: "Check your previous race time: pick the hours, minutes and seconds." };
   }
 
   const strava = normaliseStravaUrl(strava_url);
