@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getMyEntries, requireUser } from "@/lib/data";
-import { ageOn, parseRaceTime } from "@/lib/format";
+import { ageOn, durationFromParts, formatDuration } from "@/lib/format";
 import { isSituation } from "@/lib/matching";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -29,8 +29,11 @@ const profileSchema = z.object({
     .transform((v) => (v ? Number(v) : null))
     .refine((v) => v === null || (Number.isInteger(v) && v >= 0 && v <= 1000), "Travel distance should be 0–1000 miles."),
   gym: optionalText(80),
-  five_k: z.string().trim(),
-  best_race_time: optionalText(60),
+  five_k_m: z.string().optional(),
+  five_k_s: z.string().optional(),
+  best_race_h: z.string().optional(),
+  best_race_m: z.string().optional(),
+  best_race_s: z.string().optional(),
   bio: optionalText(500),
 });
 
@@ -38,14 +41,18 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
   const user = await requireUser();
   const parsed = profileSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
-  const { five_k, ...fields } = parsed.data;
+  const { five_k_m, five_k_s, best_race_h, best_race_m, best_race_s, ...fields } = parsed.data;
 
   if (ageOn(fields.date_of_birth) < 18) {
     return { error: `${brand.name} is for adults only (18+). Sorry!` };
   }
-  const fiveK = parseRaceTime(five_k);
+  const fiveK = durationFromParts({ m: five_k_m, s: five_k_s });
   if (Number.isNaN(fiveK) || (fiveK !== null && (fiveK < 600 || fiveK > 3600))) {
-    return { error: "Enter your 5km time as minutes:seconds, for example 22:40." };
+    return { error: "Check your 5km time: minutes (10 to 60) and seconds (0 to 59), for example 22 min 40 sec." };
+  }
+  const bestRace = durationFromParts({ h: best_race_h, m: best_race_m, s: best_race_s });
+  if (Number.isNaN(bestRace) || bestRace === 0 || (bestRace !== null && bestRace > 10 * 3600)) {
+    return { error: "Check your previous race time: hours, then minutes and seconds (0 to 59), for example 1 hr 21 min 12 sec." };
   }
 
   const supabase = await createClient();
@@ -66,6 +73,7 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
     id: user.id,
     ...fields,
     five_k_seconds: fiveK,
+    best_race_time: bestRace === null ? null : formatDuration(bestRace),
     ...(photo_path ? { photo_path } : {}),
   });
   if (error) return { error: error.message.includes("adults only") ? `${brand.name} is for adults only (18+).` : "Couldn't save your profile. Please try again." };
