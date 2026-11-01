@@ -1,10 +1,15 @@
 "use client";
+import * as Sentry from "@sentry/browser";
+import { useEffect } from "react";
 import { brand } from "@/design/brand";
 import { colors } from "@/design/tokens";
 
 // Last-resort screen if the whole app fails to load. Plain styles, because
 // the app's own stylesheet may not have loaded.
-export default function GlobalError({ retry }: { error: Error & { digest?: string }; retry: () => void }) {
+export default function GlobalError({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
   return (
     <html lang="en-GB">
       <body style={{ margin: 0, minHeight: "100vh", background: colors.bg, color: colors.fg, fontFamily: "Arial, sans-serif", display: "grid", placeItems: "center", textAlign: "center", padding: 16 }}>

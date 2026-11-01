@@ -1,10 +1,12 @@
 "use client";
+import * as Sentry from "@sentry/browser";
 import { useEffect } from "react";
 import { Oops } from "@/components/Oops";
 
 export default function Error({ error, retry }: { error: Error & { digest?: string }; retry: () => void }) {
   useEffect(() => {
     console.error(error);
+    Sentry.captureException(error);
   }, [error]);
   return (
     <Oops
