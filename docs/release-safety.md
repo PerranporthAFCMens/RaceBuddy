@@ -1,0 +1,54 @@
+# Release safety
+
+What stops a release breaking Race Buddy or drifting from the brand, what is
+still missing, and what to do when something goes wrong.
+
+## Checklist (2026-11-01)
+
+| # | Safety net | State |
+| --- | --- | --- |
+| 1 | Every PR into `dev` and `main` must pass `app`, `brand`, `database` (and `release-flow` on `main`) | Done (GitHub ruleset) |
+| 2 | Only `dev` can be released to `main` | Done (`release-flow` check) |
+| 3 | Brand lint, tokens and contrast tests run inside every Vercel build | Done (`npm run build:vercel`) |
+| 4 | Screenshot, accessibility (axe) and tap-target tests | Done (`brand` check) |
+| 5 | Database rule tests on every PR | Done (`database` check) |
+| 6 | **Smoke test on the real site after every merge into `dev` and `main`** | Done (`Smoke` workflow) |
+| 7 | **Uptime check every 30 minutes, with an alarm** | Done (`Smoke` workflow opens an issue, which emails Adam) |
+| 8 | Written rollback steps | Done (below) |
+| 9 | Migration safety check in CI: every migration has a rollback; dropping or renaming needs a deliberate marker | Next |
+| 10 | Full live flow test (`npm run test:live`) runs automatically after a release | Next; Adam adds one GitHub secret |
+| 11 | Error monitoring: crashes on the live site reach Adam with details | Next; needs a free Sentry account |
+| 12 | Database backups confirmed (Supabase plan and how far back) | Adam to confirm in Supabase |
+| 13 | Daily alerts job (`/api/cron/alerts`) watched for failures | Later |
+| 14 | Real-browser smoke test (page errors on load, sign-in screen works) | Later |
+| 15 | Each release tagged with notes | Later |
+| 16 | Security: package scanning, secret scanning, CodeQL, database permission checks, security headers | Owned by the security work (`.github/workflows/security.yml`) |
+
+## The smoke test
+
+`scripts/smoke-check.mts` (run by `.github/workflows/smoke.yml`) checks a deployed site from the outside, read-only, 22 checks:
+
+- `/api/health` answers, the database answers, it is the right site (dev or live), and after a merge it is running that exact commit (waits up to 15 minutes for Vercel).
+- The test race is listed on dev and hidden on live.
+- Home, login and privacy pages load in under 5 seconds, show the product name, and every style and script file they ask for exists.
+- Dev has the gold bar and is hidden from search; live has neither.
+- Signed-in pages send a signed-out visitor to login. `/styleguide` is open on dev and 404 on live.
+
+Run it by hand: GitHub > Actions > Smoke > Run workflow. Or locally:
+
+```
+SMOKE_URL=https://race-buddy-livid.vercel.app SMOKE_SITE=live npm run test:smoke
+```
+
+Pass looks like `22 passed, 0 failed.` A fail prints `FAIL` lines and the issue "Smoke test failing: live site" (or dev) opens. It closes itself when the site passes again.
+
+GitHub pauses scheduled runs if the repo has no activity for 60 days; any push turns them back on.
+
+## When live breaks: rollback
+
+1. Vercel > project `race-buddy` > Deployments.
+2. Find the last deployment that worked (the one before the broken release), click the three dots, choose **Instant Rollback** (or **Promote**).
+3. Run the smoke test (Actions > Smoke > Run workflow) and check the live site on a phone.
+4. Fix on a branch into `dev`, or revert the release PR, and release again.
+
+A rollback does not undo database changes. Migrations must work with both the old and new code (see `AI_WORKING_RULES.md`, section 4), so rolling back the code is safe; undo a migration only with its file in `supabase/rollback/`, and only if Adam decides to.
