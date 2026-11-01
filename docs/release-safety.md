@@ -15,7 +15,7 @@ still missing, and what to do when something goes wrong.
 | 6 | **Smoke test on the real site after every merge into `dev` and `main`** | Done (`Smoke` workflow) |
 | 7 | **Uptime check every 30 minutes, with an alarm** | Done (`Smoke` workflow opens an issue, which emails Adam) |
 | 8 | Written rollback steps | Done (below) |
-| 9 | Migration safety check in CI: every migration has a rollback; dropping or renaming needs a deliberate marker | Next |
+| 9 | Migration safety check in CI: every migration has a rollback, is never edited once merged, runs in order, and dropping or renaming needs a deliberate marker | Done (`database` check, `npm run migrations:check`) |
 | 10 | Full live flow test (`npm run test:live`) runs automatically after a release | Next; Adam adds one GitHub secret |
 | 11 | Error monitoring: crashes on the live site reach Adam with details | Next; needs a free Sentry account |
 | 12 | Database backups confirmed (Supabase plan and how far back) | Adam to confirm in Supabase |
