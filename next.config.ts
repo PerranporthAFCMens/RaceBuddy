@@ -18,7 +18,7 @@ const supabaseOrigin = (() => {
 
 // What the browser may load. Scripts and styles from this site only (Next.js
 // still needs inline ones); data only from this site and Supabase (including
-// live chat); no plugins; no other site may show us in a frame.
+// live chat), plus Sentry crash reports; no plugins; no other site may show us in a frame.
 // Stricter next step: per-request nonces instead of 'unsafe-inline'.
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -26,7 +26,8 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${supabaseOrigin}`,
   "font-src 'self'",
-  `connect-src 'self' ${supabaseOrigin} ${supabaseOrigin.replace(/^http/, "ws")}`,
+  // Crash reports go to Sentry's EU servers (src/lib/monitoring.ts).
+  `connect-src 'self' ${supabaseOrigin} ${supabaseOrigin.replace(/^http/, "ws")} https://*.ingest.de.sentry.io`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
