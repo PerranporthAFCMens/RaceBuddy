@@ -370,3 +370,22 @@ select pg_temp.act_as(:'tom');
 set role authenticated;
 select pg_temp.expect_error($q$select count(*) from public.ticket_checks$q$, 'permission denied');
 reset role;
+
+-- Strava link: only real Strava profile links are stored, and other athletes see it.
+select pg_temp.act_as(:'tom');
+set role authenticated;
+select pg_temp.expect_error(
+  $q$update public.profiles set strava_url = 'https://evil.example/athletes/1' where id = auth.uid()$q$,
+  'strava_url');
+select pg_temp.expect_error(
+  $q$update public.profiles set strava_url = 'javascript:alert(1)' where id = auth.uid()$q$,
+  'strava_url');
+update public.profiles set strava_url = 'https://www.strava.com/athletes/12345' where id = auth.uid();
+update public.profiles set strava_url = 'https://strava.app.link/AbC123' where id = auth.uid();
+reset role;
+select pg_temp.act_as(:'jess');
+set role authenticated;
+do $$ begin
+  assert (select strava_url from public.athlete_profiles where first_name = 'Tom') = 'https://strava.app.link/AbC123', 'Strava link shown';
+end $$;
+reset role;

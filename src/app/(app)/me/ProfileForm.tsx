@@ -87,6 +87,25 @@ export function ProfileForm({
       />
 
       <label className="block">
+        <span className="field-label">Strava profile <span className="font-normal normal-case">(optional)</span></span>
+        <input
+          className="input"
+          name="strava_url"
+          inputMode="url"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
+          placeholder="strava.com/athletes/12345"
+          defaultValue={profile?.strava_url ?? ""}
+          maxLength={200}
+          aria-describedby="strava-hint"
+        />
+        <span id="strava-hint" className="mt-1 block text-xs text-muted">
+          In the Strava app: You, then Share profile, then Copy link. Other athletes can open it.
+        </span>
+      </label>
+
+      <label className="block">
         <span className="field-label">About you <span className="font-normal normal-case">(optional)</span></span>
         <textarea
           className="input min-h-28"
