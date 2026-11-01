@@ -39,6 +39,25 @@ const REASONS: Record<string, string> = {
   wrong_category: "That order doesn't have a valid ticket in the category you chose.",
 };
 
+/** Ticket checks per person per hour, so order numbers can't be guessed by trial and error. */
+const TICKET_CHECKS_PER_HOUR = 10;
+
+async function mayCheckTicket(userId: string) {
+  const admin = createAdminClient();
+  const since = new Date(Date.now() - 3600_000).toISOString();
+  const { count, error } = await admin
+    .from("ticket_checks")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .gte("checked_at", since);
+  // Until the rate-limit migration has run the table is missing, so allow the
+  // check then; any other error means try later.
+  if (error) return error.code === "PGRST205" || error.code === "42P01";
+  if ((count ?? 0) >= TICKET_CHECKS_PER_HOUR) return false;
+  await admin.from("ticket_checks").insert({ user_id: userId });
+  return true;
+}
+
 export async function saveEntry(_: ActionState, formData: FormData): Promise<ActionState> {
   const { user } = await requireProfile();
   const parsed = entrySchema.safeParse({
@@ -106,7 +125,9 @@ export async function saveEntry(_: ActionState, formData: FormData): Promise<Act
 
   let message = "Listing saved.";
   if (hasTicket && orderRef && !saved.ticket_verified && event.tt_event_id && category?.tt_ticket_type_id) {
-    try {
+    if (!(await mayCheckTicket(user.id))) {
+      message = "Listing saved. You've checked a lot of order references in the last hour, so try again later.";
+    } else try {
       const result = await checkOrder({
         orderId: orderRef,
         ttEventId: event.tt_event_id,

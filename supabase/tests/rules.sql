@@ -336,3 +336,37 @@ do $$ declare ev uuid := (select id from public.events where slug = 'test-race')
   assert ev is not null, 'test race visible to signed-in people';
 end $$;
 reset role;
+
+-- Rate limits ------------------------------------------------------------------
+-- Tom can send 20 messages a minute; the 21st is refused.
+select pg_temp.act_as(:'tom');
+set role authenticated;
+do $$
+declare conv uuid := (select c.id from public.conversations c join public.conversation_members m on m.conversation_id = c.id
+                      where m.user_id = auth.uid() and c.kind = 'pair' and not public.chat_has_block(c.id, auth.uid()) limit 1);
+begin
+  while (select count(*) from public.messages where sender_id = auth.uid() and created_at > now() - interval '1 minute') < 20 loop
+    insert into public.messages (conversation_id, sender_id, body) values (conv, auth.uid(), 'hello');
+  end loop;
+  perform pg_temp.expect_error(format($q$insert into public.messages (conversation_id, sender_id, body) values (%L, auth.uid(), 'one too many')$q$, conv), 'Slow down');
+end $$;
+reset role;
+
+-- Dan can file 10 reports a day; the 11th is refused.
+select pg_temp.act_as(:'dan');
+set role authenticated;
+do $$ begin
+  while (select count(*) from public.reports where reporter_id = auth.uid()) < 10 loop
+    insert into public.reports (reporter_id, reported_id, reason) values (auth.uid(), '11111111-1111-1111-1111-111111111111', 'test report');
+  end loop;
+end $$;
+select pg_temp.expect_error(
+  $q$insert into public.reports (reporter_id, reported_id, reason) values (auth.uid(), '11111111-1111-1111-1111-111111111111', 'one too many')$q$,
+  'Slow down');
+reset role;
+
+-- People cannot read or write the order-check counter.
+select pg_temp.act_as(:'tom');
+set role authenticated;
+select pg_temp.expect_error($q$select count(*) from public.ticket_checks$q$, 'permission denied');
+reset role;

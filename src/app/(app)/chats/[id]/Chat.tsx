@@ -71,7 +71,7 @@ export function Chat({
       .single();
     setSending(false);
     if (error) {
-      setError("Message not sent. Please try again.");
+      setError(error.message.startsWith("Slow down") ? error.message : "Message not sent. Please try again.");
       return;
     }
     setDraft("");
