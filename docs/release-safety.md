@@ -16,7 +16,7 @@ still missing, and what to do when something goes wrong.
 | 7 | **Uptime check every 30 minutes, with an alarm** | Done (`Smoke` workflow opens an issue, which emails Adam) |
 | 8 | Written rollback steps | Done (below) |
 | 9 | Migration safety check in CI: every migration has a rollback, is never edited once merged, runs in order, and dropping or renaming needs a deliberate marker | Done (`database` check, `npm run migrations:check`) |
-| 10 | Full live flow test (`npm run test:live`) runs automatically after a release | Next; Adam adds one GitHub secret |
+| 10 | Full live flow test (`npm run test:live`, 51 checks) runs after every release and daily | Done (`Live check` workflow; needs the two GitHub secrets below) |
 | 11 | Error monitoring: crashes on the dev and live sites reach Adam with details | Done (Sentry, EU region; `src/lib/monitoring.ts`) |
 | 12 | Database backups | Done: Supabase daily backups (checked 2026-11-01). Point-in-time recovery is a paid add-on: turn on before payments go live. Profile photos are not in the backups. |
 | 13 | Daily alerts job (`/api/cron/alerts`) watched for failures | Later |
@@ -58,3 +58,9 @@ A rollback does not undo database changes. Migrations must work with both the ol
 Crashes in the browser and on the server, on the dev and live sites only, go to Adam's Sentry project (EU data region), which emails him. Reports carry the error, where it happened, the site and the release; never cookies, IP addresses, request bodies, chat text, or the `?query` part of a web address (sign-in links carry one-time tokens there). See `src/lib/monitoring.ts`.
 
 To test: open `https://race-buddy-dev.vercel.app/api/sentry-test` (dev only; 404 on live). It crashes on purpose and an issue "Sentry test crash from the dev site" appears in Sentry within a minute.
+
+## Live check (real database)
+
+`.github/workflows/live-check.yml` runs `npm run test:live` after every push to `main` and every day at 06:00 UTC. It signs up throwaway users on the test race, runs the whole flow, then deletes them. Failure opens the issue "Live check failing" (closes itself on the next pass). Logs are public, so in CI it prints check names only, never row data.
+
+It needs two repository secrets (GitHub > repo > Settings > Secrets and variables > Actions): `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`, the same values as in Vercel. Without them it skips with a warning.
