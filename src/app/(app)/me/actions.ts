@@ -7,6 +7,7 @@ import { z } from "zod";
 import { getMyEntries, requireUser } from "@/lib/data";
 import { ageOn, durationFromParts, formatDuration } from "@/lib/format";
 import { isSituation } from "@/lib/matching";
+import { normaliseStravaUrl } from "@/lib/strava";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/lib/types";
@@ -35,13 +36,14 @@ const profileSchema = z.object({
   best_race_m: z.string().optional(),
   best_race_s: z.string().optional(),
   bio: optionalText(500),
+  strava_url: z.string().max(200, "That Strava link is too long.").optional(),
 });
 
 export async function saveProfile(_: ActionState, formData: FormData): Promise<ActionState> {
   const user = await requireUser();
   const parsed = profileSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
-  const { five_k_m, five_k_s, best_race_h, best_race_m, best_race_s, ...fields } = parsed.data;
+  const { five_k_m, five_k_s, best_race_h, best_race_m, best_race_s, strava_url, ...fields } = parsed.data;
 
   if (ageOn(fields.date_of_birth) < 18) {
     return { error: `${brand.name} is for adults only (18+). Sorry!` };
@@ -53,6 +55,11 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
   const bestRace = durationFromParts({ h: best_race_h, m: best_race_m, s: best_race_s });
   if (Number.isNaN(bestRace) || bestRace === 0 || (bestRace !== null && bestRace > 10 * 3600)) {
     return { error: "Check your previous race time: hours, then minutes and seconds (0 to 59), for example 1 hr 21 min 12 sec." };
+  }
+
+  const strava = normaliseStravaUrl(strava_url);
+  if (strava === undefined) {
+    return { error: "That isn't a Strava profile link. It should look like strava.com/athletes/12345." };
   }
 
   const supabase = await createClient();
@@ -74,6 +81,7 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
     ...fields,
     five_k_seconds: fiveK,
     best_race_time: bestRace === null ? null : formatDuration(bestRace),
+    strava_url: strava,
     ...(photo_path ? { photo_path } : {}),
   });
   if (error) return { error: error.message.includes("adults only") ? `${brand.name} is for adults only (18+).` : "Couldn't save your profile. Please try again." };
