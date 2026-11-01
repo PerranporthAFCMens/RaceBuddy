@@ -14,7 +14,7 @@
 
 Both sites use the same Supabase project (HybridOS does the same: one project behind its dev and live sites, with a test gym for experiments). So:
 
-- Test accounts and test listings go on a test race, never on a real KeltX race, and are deleted after use (`npm run test:live` cleans up after itself).
+- Test accounts and test listings go on the test race (`test-race`, "Test Race (dev only)": shown on the dev site, never on live), never on a real KeltX race, and are deleted after use (`npm run test:live` cleans up after itself).
 - A database change reaches live as soon as Adam runs it, while live still runs the older code. Every migration must work with the code on both `dev` and `main` (add things; remove or rename only in a later release, once live no longer uses them).
 
 ## How code moves

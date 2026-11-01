@@ -209,7 +209,9 @@ reset role;
 select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', 'anon', false);
 set role anon;
 do $$ begin
-  assert (select count(*) from public.categories) = 14, 'categories public';
+  assert (select count(*) from public.categories c join public.events e on e.id = c.event_id
+          where e.slug = 'keltx-exeter-2027') = 14, 'categories public';
+  assert (select count(*) from public.categories) = 16, 'KeltX 14 plus the test race 2';
 end $$;
 select pg_temp.expect_error($q$select * from public.feed_entries$q$, 'permission denied');
 select pg_temp.expect_error($q$select * from public.profiles$q$, 'permission denied');
@@ -311,5 +313,26 @@ update public.entries set alerts_email = false where user_id = auth.uid();
 insert into public.blocks (blocker_id, blocked_id) values (auth.uid(), :'bea');
 do $$ declare ev uuid := (select id from public.events where slug = 'keltx-exeter-2027'); begin
   assert not exists (select 1 from public.my_matches(ev)), 'blocked Bea no longer a match';
+end $$;
+reset role;
+
+-- Test race ------------------------------------------------------------------
+-- Kept apart from real races: marked as a test, inactive (so older live code
+-- hides it), with its own organiser and the two category shapes.
+do $$ begin
+  assert exists (select 1 from public.events e join public.organisers o on o.id = e.organiser_id
+                 where e.slug = 'test-race' and e.is_test and not e.is_active and o.slug = 'race-buddy-test'),
+    'test race exists, is a test, is inactive, under its own organiser';
+  assert (select count(*) from public.categories c join public.events e on e.id = c.event_id
+          where e.slug = 'test-race') = 2, 'test race has 2 categories';
+  assert not exists (select 1 from public.events where is_test and slug <> 'test-race'), 'real races are not tests';
+  assert (select not is_test from public.events where slug = 'keltx-exeter-2027'), 'KeltX race is real';
+end $$;
+
+-- Signed-in people can list on the test race like a real one.
+select pg_temp.act_as(:'ann');
+set role authenticated;
+do $$ declare ev uuid := (select id from public.events where slug = 'test-race'); begin
+  assert ev is not null, 'test race visible to signed-in people';
 end $$;
 reset role;
