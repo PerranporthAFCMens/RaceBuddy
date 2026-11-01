@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { Logo } from "@/components/Logo";
 import { MatchedFlag, TicketFlag } from "@/components/TicketFlag";
+import { TimeInput } from "@/components/TimeInput";
 import { brand } from "@/design/brand";
 import { colors, fontSizes, type ColorToken } from "@/design/tokens";
 import { isLive } from "@/lib/site-env";
@@ -117,6 +118,18 @@ export default function Styleguide() {
             <option>London</option>
           </select>
         </label>
+        <div className="grid grid-cols-2 items-end gap-3">
+          <label className="block">
+            <span className="field-label">First name</span>
+            <input className="input" defaultValue="Sam" />
+          </label>
+          <label className="block">
+            <span className="field-label">Date of birth</span>
+            <input className="input" type="date" defaultValue="1990-04-12" />
+          </label>
+        </div>
+        <TimeInput name="sg_five_k" label="5km time" units={["m", "s"]} seconds={1360} />
+        <TimeInput name="sg_race" label="Previous race time" units={["h", "m", "s"]} optional placeholders={{ h: "1", m: "21", s: "12" }} />
         <label className="flex items-center gap-3 text-sm">
           <input type="checkbox" className="h-5 w-5 accent-accent" defaultChecked />
           I am 18 or over

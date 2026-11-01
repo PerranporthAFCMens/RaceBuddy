@@ -20,6 +20,48 @@ export function formatRaceTime(seconds: number | null | undefined): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+/** Seconds -> hours, minutes and seconds, for filling in separate boxes. */
+export function splitDuration(seconds: number | null | undefined): { h: string; m: string; s: string } {
+  if (seconds == null || Number.isNaN(seconds)) return { h: "", m: "", s: "" };
+  return {
+    h: String(Math.floor(seconds / 3600)),
+    m: String(Math.floor((seconds % 3600) / 60)),
+    s: String(seconds % 60).padStart(2, "0"),
+  };
+}
+
+/** Seconds -> "1:21:12". */
+export function formatDuration(seconds: number): string {
+  const { h, m, s } = splitDuration(seconds);
+  return `${h}:${m.padStart(2, "0")}:${s}`;
+}
+
+/**
+ * Reads a saved previous race time back into seconds. Older profiles typed it
+ * freely ("Cornwall 1:21:12", "1:23"), so take the last time in the text and
+ * read two parts as hours and minutes. Null if there isn't one.
+ */
+export function parseFinishTime(text: string | null | undefined): number | null {
+  const match = (text ?? "").match(/(\d{1,2})[:.](\d{1,2})(?:[:.](\d{1,2}))?(?!.*\d[:.]\d)/);
+  if (!match) return null;
+  const [, h, m, s] = match;
+  return Number(h) * 3600 + Number(m) * 60 + Number(s ?? 0);
+}
+
+/**
+ * Hours, minutes and seconds typed in separate boxes -> total seconds.
+ * Null if every box is empty, NaN if a box isn't a whole number or minutes or
+ * seconds are 60 or more.
+ */
+export function durationFromParts(parts: { h?: string; m?: string; s?: string }): number | null {
+  const values = [parts.h, parts.m, parts.s].map((v) => (v ?? "").trim());
+  if (values.every((v) => v === "")) return null;
+  if (values.some((v) => v !== "" && !/^\d{1,2}$/.test(v))) return Number.NaN;
+  const [h, m, s] = values.map((v) => Number(v || 0));
+  if (m > 59 || s > 59) return Number.NaN;
+  return h * 3600 + m * 60 + s;
+}
+
 export function ageOn(dateOfBirth: string, on = new Date()): number {
   const dob = new Date(`${dateOfBirth}T00:00:00Z`);
   let age = on.getUTCFullYear() - dob.getUTCFullYear();

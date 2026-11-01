@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ageOn, formatRaceTime, parseRaceTime } from "./format.ts";
+import { ageOn, durationFromParts, formatDuration, formatRaceTime, parseFinishTime, parseRaceTime, splitDuration } from "./format.ts";
 import { normaliseOrderReference, parseTicketType } from "./ticket-tailor/parse.ts";
 
 test("race times", () => {
@@ -11,6 +11,29 @@ test("race times", () => {
   assert.ok(Number.isNaN(parseRaceTime("fast")));
   assert.equal(formatRaceTime(1360), "22:40");
   assert.equal(formatRaceTime(605), "10:05");
+});
+
+test("times typed in separate boxes", () => {
+  assert.equal(durationFromParts({ m: "22", s: "40" }), 1360);
+  assert.equal(durationFromParts({ m: "32", s: "" }), 1920);
+  assert.equal(durationFromParts({ h: "1", m: "21", s: "12" }), 4872);
+  assert.equal(durationFromParts({ h: "", m: "", s: "" }), null);
+  assert.equal(durationFromParts({}), null);
+  assert.ok(Number.isNaN(durationFromParts({ m: "22", s: "60" })));
+  assert.ok(Number.isNaN(durationFromParts({ h: "1", m: "75" })));
+  assert.ok(Number.isNaN(durationFromParts({ m: "2x" })));
+  assert.deepEqual(splitDuration(1360), { h: "0", m: "22", s: "40" });
+  assert.deepEqual(splitDuration(null), { h: "", m: "", s: "" });
+  assert.equal(formatDuration(4872), "1:21:12");
+  assert.equal(formatDuration(4980), "1:23:00");
+});
+
+test("previous race times saved before the separate boxes", () => {
+  assert.equal(parseFinishTime("1:23"), 4980);
+  assert.equal(parseFinishTime("Cornwall 1:21:12"), 4872);
+  assert.equal(parseFinishTime("1:21:12"), 4872);
+  assert.equal(parseFinishTime("about 85 mins"), null);
+  assert.equal(parseFinishTime(null), null);
 });
 
 test("age is worked out from the birthday", () => {
