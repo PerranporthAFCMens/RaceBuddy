@@ -1,9 +1,11 @@
 # Sample data
 
-Made-up data for trying the app on the dev site. Not migrations: nothing here
-changes the database's shape, and nothing runs it automatically. Paste a file
-into the Supabase SQL editor to run it.
+`athletes.json`: 30 made-up athletes for trying the app on the dev site. They
+get listings on the Test Race only, which the live site never shows.
 
-- `sample-athletes.sql`: 30 made-up athletes with listings on the Test Race
-  (dev site only). Safe to run again; it replaces the old samples.
-- `sample-athletes-remove.sql`: removes them all.
+- `npm run samples:add` adds them (and removes any old samples first).
+- `npm run samples:remove` removes them all.
+
+Both need `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. This is a
+script, not SQL, because Supabase doesn't let the SQL editor create accounts
+(`must be owner of table users`).

@@ -11,6 +11,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test:live": "node --env-file-if-exists=.env.local scripts/live-check.mts",
+    "samples:add": "node --env-file-if-exists=.env.local scripts/sample-athletes.mts add",
+    "samples:remove": "node --env-file-if-exists=.env.local scripts/sample-athletes.mts remove",
     "sync:tickettailor": "node --env-file-if-exists=.env.local scripts/sync-ticket-tailor.mts",
     "test:smoke": "node --experimental-strip-types scripts/smoke-check.mts",
     "migrations:check": "node --experimental-strip-types scripts/check-migrations.mts",
