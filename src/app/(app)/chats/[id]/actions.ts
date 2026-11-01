@@ -89,6 +89,6 @@ export async function reportUser(_: ActionState, formData: FormData): Promise<Ac
     conversation_id: conv.success ? conv.data : null,
     reason: reason.data,
   });
-  if (error) return { error: "Couldn't send your report. Please try again." };
+  if (error) return { error: error.message.startsWith("Slow down") ? error.message : "Couldn't send your report. Please try again." };
   return { ok: true, message: `Thanks. The ${brand.name} team will review this.` };
 }
