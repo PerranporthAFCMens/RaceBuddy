@@ -175,10 +175,15 @@ async function main() {
   check("the ticket holder gets an alert for the new match", (tomAlerts ?? []).length === 1, tomAlerts);
   const { data: jessAlerts } = await jess.client.from("match_alerts").select("id");
   check("athletes only see their own alerts", (jessAlerts ?? []).length === 0, jessAlerts);
-  await expectError(
+  // Supabase grants table access by default, so row level security is what
+  // refuses this here; on plain Postgres it's the missing grant.
+  const { error: alertWriteErr } = await jess.client
+    .from("match_alerts")
+    .insert({ user_id: jess.id, for_entry_id: tomEntry.id, match_entry_id: tomEntry.id });
+  check(
     "alerts cannot be written directly",
-    jess.client.from("match_alerts").insert({ user_id: jess.id, for_entry_id: tomEntry.id, match_entry_id: tomEntry.id }),
-    "permission denied",
+    Boolean(alertWriteErr && /permission denied|row-level security/.test(alertWriteErr.message)),
+    alertWriteErr?.message ?? "insert was allowed",
   );
 
   const { data: jessProfiles } = await jess.client.from("profiles").select("id");
