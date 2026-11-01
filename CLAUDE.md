@@ -24,7 +24,7 @@ Owner (Adam) is not a developer: plain English, short exact steps, and say what 
 - New screen or component: add it to `/styleguide` or `e2e/brand.spec.ts`. Never relax the brand lint rule, contrast tests or screenshot tolerance. New screenshots (`npm run test:brand:update`) only for a deliberate design change, named in the PR.
 
 ## Database and access
-- Every schema change is a migration in `supabase/migrations/` with a rollback in `supabase/rollback/` and a test in `supabase/tests/rules.sql`. Never loosen RLS to make a feature work. No service-role key in browser code.
+- Every schema change is a migration in `supabase/migrations/` with a rollback in `supabase/rollback/` and a test in `supabase/tests/rules.sql`. Supabase grants every new table and function to `anon` and `authenticated`: revoke what they should not have in the same migration. Never loosen RLS to make a feature work. No service-role key in browser code.
 - One database serves both sites: every migration must work with the code on both `dev` and `main` (add first, remove later). Hand Adam the exact SQL; never run SQL yourself.
 - Test accounts and data only on a test race, cleaned up after.
 - Organisers never see chats. Users are 18+.
