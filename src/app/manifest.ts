@@ -5,7 +5,7 @@ import { colors } from "@/design/tokens";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: brand.name,
-    short_name: brand.name,
+    short_name: brand.shortName,
     description: "Find a partner for doubles and relay fitness races.",
     start_url: "/browse",
     display: "standalone",

@@ -2,6 +2,8 @@ import "server-only";
 import { ageOn, categoryLabel, formatRaceTime } from "@/lib/format";
 import { categoriesOf, situationLabel, type Situation } from "@/lib/matching";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { siteUrl } from "@/lib/site-env";
+import { brand } from "@/design/brand";
 import { buildAlertEmail, type AlertMatch } from "./email";
 
 function groupBy<T, K>(items: T[], key: (item: T) => K) {
@@ -13,10 +15,12 @@ function groupBy<T, K>(items: T[], key: (item: T) => K) {
 /** At most one alert email per person in this window. */
 const QUIET_HOURS = 6;
 
-export function siteUrl() {
-  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
-  return "http://localhost:3000";
+/** Sender for alert emails. EMAIL_FROM is just the address; the name shown comes from src/design/brand.ts. */
+export function emailFrom() {
+  const set = process.env.EMAIL_FROM?.trim() ?? "";
+  // Older setting style "Name <address>": keep only the address.
+  const address = set.match(/<([^>]+)>/)?.[1]?.trim() || set || "onboarding@resend.dev";
+  return `${brand.name} <${address}>`;
 }
 
 type AlertRow = { id: string; user_id: string; for_entry_id: string; match_entry_id: string };
@@ -42,7 +46,7 @@ type EntryRow = {
 export async function sendPendingAlerts(onlyUserIds?: string[]) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { sent: 0, reason: "RESEND_API_KEY is not set" };
-  const from = process.env.EMAIL_FROM || "Race Buddy <onboarding@resend.dev>";
+  const from = emailFrom();
   const admin = createAdminClient();
   const site = siteUrl();
 

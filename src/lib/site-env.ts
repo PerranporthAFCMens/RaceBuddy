@@ -18,3 +18,15 @@ export function siteEnv(): SiteEnv {
 
 export const isLive = () => siteEnv() === "live";
 export const isDev = () => siteEnv() === "dev";
+
+/**
+ * The site's public address, with no trailing slash. Used in sign-up links,
+ * emails and page metadata. Set NEXT_PUBLIC_SITE_URL in each Vercel project:
+ * moving to a custom domain is a change to that one setting.
+ */
+export function siteUrl(fallback = "http://localhost:3000") {
+  const set = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (set) return set.replace(/\/+$/, "");
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  return fallback.replace(/\/+$/, "");
+}

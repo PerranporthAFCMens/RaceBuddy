@@ -1,3 +1,4 @@
+import { brand } from "@/design/brand";
 import Link from "next/link";
 import { getCategories, getMyEntries, pickEvent, requireProfile } from "@/lib/data";
 import { isSituation } from "@/lib/matching";
@@ -12,7 +13,7 @@ export default async function RaceListingPage({ searchParams }: PageProps<"/me/r
   const { user, profile } = await requireProfile();
   const { event, events } = await pickEvent(typeof params.event === "string" ? params.event : undefined);
   if (!event) {
-    return <p className="text-center text-muted">No races are open on Race Buddy yet. Check back soon.</p>;
+    return <p className="text-center text-muted">No races are open on {brand.name} yet. Check back soon.</p>;
   }
   const [categories, entries] = await Promise.all([getCategories(event.id), getMyEntries()]);
   const entry = entries.find((e) => e.event_id === event.id) ?? null;

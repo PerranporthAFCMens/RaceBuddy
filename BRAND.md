@@ -7,7 +7,9 @@ this file is the rulebook the code follows.
 
 **The product name is not final.** Never type it into a component. Use
 `brand.name` / `brand.wordmark` from `src/design/brand.ts` and the `<Logo />`
-component, so a rename is a one-file change.
+component, so a rename is a one-line change (`const name` in `brand.ts`;
+steps in `docs/rename-and-domain.md`). `src/design/brand.test.ts` fails if the
+name is typed anywhere else in `src/`.
 
 ## Where things live
 

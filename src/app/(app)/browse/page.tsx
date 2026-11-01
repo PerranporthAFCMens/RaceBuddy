@@ -1,3 +1,4 @@
+import { brand } from "@/design/brand";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { TicketFlag } from "@/components/TicketFlag";
@@ -30,7 +31,7 @@ export default async function BrowsePage({ searchParams }: PageProps<"/browse">)
   const params = await searchParams;
   const { user, profile } = await requireProfile();
   const { event, events } = await pickEvent(str(params.event));
-  if (!event) return <p className="text-center text-muted">No races are open on Race Buddy yet. Check back soon.</p>;
+  if (!event) return <p className="text-center text-muted">No races are open on {brand.name} yet. Check back soon.</p>;
 
   const f: Filters = {
     ticket: str(params.ticket),
