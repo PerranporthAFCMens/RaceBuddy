@@ -1,4 +1,5 @@
 "use server";
+import { brand } from "@/design/brand";
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -40,7 +41,7 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
   const { five_k, ...fields } = parsed.data;
 
   if (ageOn(fields.date_of_birth) < 18) {
-    return { error: "Race Buddy is for adults only (18+). Sorry!" };
+    return { error: `${brand.name} is for adults only (18+). Sorry!` };
   }
   const fiveK = parseRaceTime(five_k);
   if (Number.isNaN(fiveK) || (fiveK !== null && (fiveK < 600 || fiveK > 3600))) {
@@ -67,7 +68,7 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
     five_k_seconds: fiveK,
     ...(photo_path ? { photo_path } : {}),
   });
-  if (error) return { error: error.message.includes("adults only") ? "Race Buddy is for adults only (18+)." : "Couldn't save your profile. Please try again." };
+  if (error) return { error: error.message.includes("adults only") ? `${brand.name} is for adults only (18+).` : "Couldn't save your profile. Please try again." };
 
   if (photo_path && existing?.photo_path) {
     await supabase.storage.from("avatars").remove([existing.photo_path]);

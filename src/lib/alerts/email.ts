@@ -1,5 +1,6 @@
 // Builds the "new match" email. Pure, so it can be tested without sending.
 
+import { brand } from "../../design/brand.ts";
 import { colors as c } from "../../design/tokens.ts";
 
 export type AlertMatch = {
@@ -46,7 +47,7 @@ export function buildAlertEmail({
       "",
     ]),
     ...(more > 0 ? [`And ${more} more: ${forYou}`, ""] : []),
-    `You're getting this because you turned on match alerts for ${eventName} on Race Buddy.`,
+    `You're getting this because you turned on match alerts for ${eventName} on ${brand.name}.`,
     `Turn them off: ${settings}`,
   ].join("\n");
 
@@ -62,7 +63,7 @@ export function buildAlertEmail({
   const html = `<!doctype html><html><body style="margin:0;background:${c.bg}">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${c.bg};padding:20px 0"><tr><td align="center">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${c.bg};padding:24px">
-    <tr><td><p style="margin:0;font:700 13px Arial,sans-serif;letter-spacing:4px;color:${c.fg}">RACE BUDD<span style="color:${c.accent}">Y</span></p>
+    <tr><td><p style="margin:0;font:700 13px Arial,sans-serif;letter-spacing:4px;color:${c.fg}">${esc(brand.wordmark.lead)}<span style="color:${c.accent}">${esc(brand.wordmark.accent)}</span></p>
     <h1 style="margin:16px 0 8px;font:700 24px Arial,sans-serif;text-transform:uppercase;color:${c.fg}">${
       matches.length === 1 ? `${esc(lead.firstName)} could be your partner` : `${matches.length} new matches`
     }</h1>
@@ -70,7 +71,7 @@ export function buildAlertEmail({
     ${shown.map(card).join("")}
     ${more > 0 ? `<tr><td style="padding:12px 0;border-top:1px solid ${c.edge}"><a href="${esc(forYou)}" style="font:14px Arial,sans-serif;color:${c.accent}">And ${more} more</a></td></tr>` : ""}
   </table>
-  <p style="max-width:520px;margin:12px auto 0;font:12px Arial,sans-serif;color:${c.muted};padding:0 12px">You're getting this because you turned on match alerts for ${esc(eventName)} on Race Buddy. <a href="${esc(settings)}" style="color:${c.muted}">Turn alerts off</a>.</p>
+  <p style="max-width:520px;margin:12px auto 0;font:12px Arial,sans-serif;color:${c.muted};padding:0 12px">You're getting this because you turned on match alerts for ${esc(eventName)} on ${esc(brand.name)}. <a href="${esc(settings)}" style="color:${c.muted}">Turn alerts off</a>.</p>
   </td></tr></table></body></html>`;
 
   return { subject, text, html, settingsUrl: settings };

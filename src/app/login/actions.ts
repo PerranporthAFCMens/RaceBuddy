@@ -5,6 +5,8 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { isSituation } from "@/lib/matching";
 import type { ActionState } from "@/lib/types";
+import { siteUrl } from "@/lib/site-env";
+import { brand } from "@/design/brand";
 
 const credentials = z.object({
   email: z.email("Enter a valid email address.").trim().toLowerCase(),
@@ -18,7 +20,7 @@ function safeNext(next: FormDataEntryValue | null) {
 
 async function siteOrigin() {
   const h = await headers();
-  return process.env.NEXT_PUBLIC_SITE_URL ?? h.get("origin") ?? "http://localhost:3000";
+  return siteUrl(h.get("origin") ?? undefined);
 }
 
 export async function signIn(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -33,7 +35,7 @@ export async function signIn(_: ActionState, formData: FormData): Promise<Action
 export async function signUp(_: ActionState, formData: FormData): Promise<ActionState> {
   const parsed = credentials.safeParse({ email: formData.get("email"), password: formData.get("password") });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
-  if (formData.get("adult") !== "on") return { error: "Race Buddy is for adults only. Please confirm you are 18 or over." };
+  if (formData.get("adult") !== "on") return { error: `${brand.name} is for adults only. Please confirm you are 18 or over.` };
 
   const supabase = await createClient();
   const origin = await siteOrigin();

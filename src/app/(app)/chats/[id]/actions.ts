@@ -1,4 +1,5 @@
 "use server";
+import { brand } from "@/design/brand";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -89,5 +90,5 @@ export async function reportUser(_: ActionState, formData: FormData): Promise<Ac
     reason: reason.data,
   });
   if (error) return { error: "Couldn't send your report. Please try again." };
-  return { ok: true, message: "Thanks. The Race Buddy team will review this." };
+  return { ok: true, message: `Thanks. The ${brand.name} team will review this.` };
 }

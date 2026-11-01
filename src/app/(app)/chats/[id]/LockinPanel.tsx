@@ -1,4 +1,5 @@
 "use client";
+import { brand } from "@/design/brand";
 import { useActionState } from "react";
 import { FormMessage } from "@/components/FormMessage";
 import { ActionForm } from "@/components/ActionForm";
@@ -42,7 +43,7 @@ export function LockinPanel({ conversationId, view }: { conversationId: string; 
           <p className="text-xs text-muted">
             Next: the ticket holder completes the name change with the organiser
             {view.cutoff ? ` before ${new Date(`${view.cutoff}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}.
-            Paying the fee in Race Buddy is coming soon.
+            Paying the fee in {brand.name} is coming soon.
             {view.ticketUrl && (
               <>
                 {" "}

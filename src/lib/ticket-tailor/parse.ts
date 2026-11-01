@@ -1,4 +1,4 @@
-// Turns Ticket Tailor ticket type names into Race Buddy categories.
+// Turns Ticket Tailor ticket type names into the app's race categories.
 // Pure functions with no imports, so scripts can use them too.
 
 export type ParsedCategory = {
