@@ -14,7 +14,7 @@ name: Live check
 
 on:
   push:
-    branches: [main, claude/project-thread-es119f]
+    branches: [main]
   schedule:
     - cron: "0 6 * * *"
   workflow_dispatch:
