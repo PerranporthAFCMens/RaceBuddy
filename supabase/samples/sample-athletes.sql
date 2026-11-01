@@ -5,24 +5,23 @@
 -- live site never shows. They cannot sign in (no password, unreachable
 -- .invalid email addresses) and never get match emails.
 --
--- Run it again any time: it removes the old samples first.
--- To remove them: sample-athletes-remove.sql.
+-- Run the whole file in the Race Buddy project. Safe to run again: it
+-- removes the old samples first. To remove them: sample-athletes-remove.sql.
 
-begin;
-
--- Start clean. Deleting the account removes the profile, listing, requests
--- and chats with it.
+-- 1. Start clean. Deleting the account removes the profile, listing,
+--    requests and chats with it.
 delete from auth.users
 where email like 'sample-athlete-%@example.invalid'
   and raw_app_meta_data ->> 'sample' = 'true';
 
-create temporary table sample_athletes (
-  n int, first_name text, age int, region text, home_town text, travel_miles int,
-  gym text, five_k_seconds int, best_race_time text, bio text,
-  situation text, category text, spots_needed int, team_name text, stations text, note text
-) on commit drop;
-
-insert into sample_athletes values
+-- 2. Accounts, profiles and Test Race listings, in one statement so it all
+--    happens together or not at all. Ids are fixed
+--    (5a4d0000-0000-4000-8000-0000000000NN) so they are easy to spot.
+with s (
+  n, first_name, age, region, home_town, travel_miles,
+  gym, five_k_seconds, best_race_time, bio,
+  situation, category, spots_needed, team_name, stations, note
+) as (values
   ( 1, 'Jess', 29, 'Cornwall', 'Truro', 30, 'Kernow Strength Co', 1395, '1:18:40',
        'Ex-hockey player. Love sleds, hate wall balls. Looking for someone who will push the pace on the runs.',
        'spare_spot', 'd', 1, null, null, 'Partner''s done their knee. Mixed doubles, Saturday.'),
@@ -112,39 +111,43 @@ insert into sample_athletes values
        'single', null, 1, null, null, 'Doubles or relay.'),
   (30, 'Steve', 40, 'Cornwall', 'Bude', 45, 'Atlantic Barbell', 1425, '1:20:50',
        'Firefighter. Good at carrying heavy things.',
-       'single', null, 1, null, null, null);
-
--- Accounts. Ids are fixed (5a4d0000-...-0000000000NN) so they are easy to spot.
-insert into auth.users (
-  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
-  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
-  confirmation_token, recovery_token, email_change_token_new, email_change
+       'single', null, 1, null, null, null)
+),
+people as (
+  select s.*, format('5a4d0000-0000-4000-8000-%s', lpad(s.n::text, 12, '0'))::uuid as id
+  from s
+),
+new_accounts as (
+  insert into auth.users (
+    instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+    raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+    confirmation_token, recovery_token, email_change_token_new, email_change
+  )
+  select
+    '00000000-0000-0000-0000-000000000000', id, 'authenticated', 'authenticated',
+    format('sample-athlete-%s@example.invalid', lpad(n::text, 2, '0')),
+    '', now(),
+    '{"provider": "email", "providers": ["email"], "sample": true}'::jsonb,
+    '{}'::jsonb,
+    now() - make_interval(hours => n), now(),
+    '', '', '', ''
+  from people
+  returning id
+),
+new_profiles as (
+  -- Birthdays are spread through the year so ages look natural.
+  insert into public.profiles (
+    id, first_name, date_of_birth, bio, gym, home_town, region, travel_miles,
+    five_k_seconds, best_race_time
+  )
+  select
+    id, first_name,
+    (current_date - make_interval(years => age) - make_interval(days => (n * 37) % 300 + 1))::date,
+    bio, gym, home_town, region, travel_miles, five_k_seconds, best_race_time
+  from people
+  returning id
 )
-select
-  '00000000-0000-0000-0000-000000000000',
-  format('5a4d0000-0000-4000-8000-%s', lpad(n::text, 12, '0'))::uuid,
-  'authenticated', 'authenticated',
-  format('sample-athlete-%s@example.invalid', lpad(n::text, 2, '0')),
-  '', now(),
-  '{"provider": "email", "providers": ["email"], "sample": true}'::jsonb,
-  '{}'::jsonb,
-  now() - (n || ' hours')::interval, now(),
-  '', '', '', ''
-from sample_athletes;
-
--- Profiles. Birthdays are spread through the year so ages look natural.
-insert into public.profiles (
-  id, first_name, date_of_birth, bio, gym, home_town, region, travel_miles,
-  five_k_seconds, best_race_time
-)
-select
-  format('5a4d0000-0000-4000-8000-%s', lpad(n::text, 12, '0'))::uuid,
-  first_name,
-  (current_date - make_interval(years => age) - make_interval(days => (n * 37) % 300 + 1))::date,
-  bio, gym, home_town, region, travel_miles, five_k_seconds, best_race_time
-from sample_athletes;
-
--- Listings on the Test Race.
+-- Listings.
 --   spare_spot  has a ticket (doubles or relay) and needs a partner or teammates
 --   need_spot   no ticket, wants a spot on someone's team
 --   single      no ticket, wants another single to enter with
@@ -154,33 +157,33 @@ insert into public.entries (
   alerts_email, created_at
 )
 select
-  format('5a4d0000-0000-4000-8000-%s', lpad(s.n::text, 12, '0'))::uuid,
+  p.id,
   e.id,
-  s.situation = 'spare_spot',
-  case s.category when 'd' then d.id when 'r' then r.id end,
+  p.situation = 'spare_spot',
+  case p.category when 'd' then d.id when 'r' then r.id end,
   case
-    when s.situation = 'spare_spot' then '{}'::uuid[]
-    when s.situation = 'single' then array[d.id]
-    when s.n % 3 = 0 then array[r.id]
-    when s.n % 3 = 1 then array[d.id, r.id]
+    when p.situation = 'spare_spot' then '{}'::uuid[]
+    when p.situation = 'single' then array[d.id]
+    when p.n % 3 = 0 then array[r.id]
+    when p.n % 3 = 1 then array[d.id, r.id]
     else array[d.id]
   end,
-  s.team_name,
-  s.spots_needed,
-  s.stations,
-  case when s.situation = 'spare_spot' then '{}'::text[] else array['Saturday'] end,
-  s.note,
-  s.situation,
-  case when s.n % 4 = 0 then 300 end,
+  p.team_name,
+  p.spots_needed,
+  p.stations,
+  case when p.situation = 'spare_spot' then '{}'::text[] else array['Saturday'] end,
+  p.note,
+  p.situation,
+  case when p.n % 4 = 0 then 300 end,
   false,
-  now() - (s.n * 5 || ' hours')::interval
-from sample_athletes s
+  now() - make_interval(hours => p.n * 5)
+from people p
 join public.events e on e.slug = 'test-race'
 join public.categories d on d.event_id = e.id and d.tt_ticket_type_id = 'test_mixed_doubles'
 join public.categories r on r.event_id = e.id and r.tt_ticket_type_id = 'test_mixed_relay';
 
--- Adding listings queues match emails for real people with a Test Race
--- listing. Mark those as already sent so nobody is emailed about samples.
+-- 3. Adding listings queues match emails for real people with a Test Race
+--    listing. Mark those as already sent so nobody is emailed about samples.
 update public.match_alerts
 set emailed_at = now()
 where emailed_at is null
@@ -188,8 +191,6 @@ where emailed_at is null
     select id from public.entries
     where user_id::text like '5a4d0000-0000-4000-8000-%'
   );
-
-commit;
 
 -- Should show: 30 profiles, 30 listings.
 select
