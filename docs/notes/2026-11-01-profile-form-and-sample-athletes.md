@@ -18,3 +18,7 @@
   wheels: `TimeInput` now uses native selects (the iPhone shows its own wheel
   picker). 5km minutes run 10–60; race time hours 0–5. Form field names and
   what is saved are unchanged.
+- Then: newer iPhones show `<select>` as a pop-up list, not a wheel, so
+  `TimeInput` is now our own wheel picker (tap the time, a sheet slides up with
+  scroll-snap wheels, Done). Wheels are spinbuttons for screen readers and work
+  with the arrow keys. Still posts the same `_h` / `_m` / `_s` fields.
