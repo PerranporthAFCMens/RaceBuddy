@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
+import { LoadingCards } from "@/components/LoadingCards";
 import { Logo } from "@/components/Logo";
 import { MatchedFlag, TicketFlag } from "@/components/TicketFlag";
 import { TimeInput } from "@/components/TimeInput";
@@ -169,6 +170,11 @@ export default function Styleguide() {
           </div>
           <TicketFlag hasTicket={false} />
         </div>
+      </section>
+
+      <section aria-labelledby="sg-loading" className="space-y-4">
+        <h2 id="sg-loading" className="heading">Loading</h2>
+        <LoadingCards count={2} />
       </section>
     </main>
   );
