@@ -1,0 +1,95 @@
+name: Smoke
+
+# Checks the real dev and live sites from the outside (scripts/smoke-check.mts):
+#   - after every merge into dev or main, once Vercel has the new commit live
+#   - every 30 minutes, as an uptime check
+#   - by hand: Actions > Smoke > Run workflow
+# If a site fails, an issue titled "Smoke test failing: <site> site" is opened,
+# which emails the repo owner. It closes itself when the site passes again.
+
+on:
+  push:
+    branches: [dev, main]
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      sites: ${{ steps.pick.outputs.sites }}
+    steps:
+      - id: pick
+        env:
+          EVENT: ${{ github.event_name }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          dev='{"site":"dev","url":"https://race-buddy-dev.vercel.app"}'
+          live='{"site":"live","url":"https://race-buddy-livid.vercel.app"}'
+          if [ "$EVENT" = "push" ] && [ "$BRANCH" = "dev" ]; then sites="[$dev]"
+          elif [ "$EVENT" = "push" ]; then sites="[$live]"
+          else sites="[$dev,$live]"; fi
+          echo "sites=$sites" >> "$GITHUB_OUTPUT"
+
+  smoke:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJson(needs.plan.outputs.sites) }}
+    concurrency:
+      group: smoke-${{ matrix.target.site }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check the ${{ matrix.target.site }} site
+        env:
+          SMOKE_URL: ${{ matrix.target.url }}
+          SMOKE_SITE: ${{ matrix.target.site }}
+          # After a merge, wait (up to 15 minutes) for Vercel to put this commit live.
+          SMOKE_COMMIT: ${{ github.event_name == 'push' && github.sha || '' }}
+          SMOKE_WAIT_SECONDS: "900"
+        run: npm run test:smoke
+
+      - name: Raise the alarm
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SITE: ${{ matrix.target.site }}
+          SMOKE_URL: ${{ matrix.target.url }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Smoke test failing: $SITE site"
+          gh label create smoke-alert --color B60205 --description "Automatic smoke test alarm" --force >/dev/null
+          open=$(gh issue list --label smoke-alert --state open --search "in:title \"$title\"" --json number --jq '.[0].number')
+          if [ -z "$open" ]; then
+            gh issue create --title "$title" --label smoke-alert --body "The automatic smoke test failed on the $SITE site ($SMOKE_URL).
+
+          Details: $RUN_URL
+
+          What to do: open the details link and read the FAIL lines. If the live site is broken after a release, roll back first (see docs/release-safety.md), then fix on dev.
+          This issue closes itself when the site passes again."
+          else
+            echo "Alarm already open: #$open"
+          fi
+      - name: Clear the alarm
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SITE: ${{ matrix.target.site }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Smoke test failing: $SITE site"
+          for n in $(gh issue list --label smoke-alert --state open --search "in:title \"$title\"" --json number --jq '.[].number' 2>/dev/null); do
+            gh issue close "$n" --comment "Passing again: $RUN_URL"
+          done
