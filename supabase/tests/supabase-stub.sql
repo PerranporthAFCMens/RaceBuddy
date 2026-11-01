@@ -23,3 +23,9 @@ create function storage.foldername(name text) returns text[] language sql immuta
   select (string_to_array(name, '/'))[1:array_length(string_to_array(name, '/'), 1) - 1] $$;
 
 create publication supabase_realtime;
+
+-- Like real Supabase: every new table, function and sequence in public is
+-- granted to anon and authenticated unless a migration revokes it.
+alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
