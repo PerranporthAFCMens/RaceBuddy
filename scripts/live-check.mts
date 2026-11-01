@@ -3,6 +3,7 @@
 //
 //   npm run test:live
 //
+// Also runs from .github/workflows/live-check.yml (after each release and daily).
 // Needs NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY and
 // SUPABASE_SERVICE_ROLE_KEY. Test users are created with the admin API, so no
 // emails are sent.
@@ -35,7 +36,9 @@ function check(name: string, ok: boolean, detail?: unknown) {
     console.log(`  ok   ${name}`);
   } else {
     failures.push(name);
-    console.log(`  FAIL ${name}${detail === undefined ? "" : ` -> ${JSON.stringify(detail)}`}`);
+    // GitHub Actions logs are public for this repo: never print row data there.
+    const show = detail !== undefined && !process.env.CI;
+    console.log(`  FAIL ${name}${show ? ` -> ${JSON.stringify(detail)}` : ""}`);
   }
 }
 
@@ -354,7 +357,7 @@ async function cleanUp() {
   // membership, messages, lock-ins, blocks and reports.
   for (const id of userIds) {
     const { error } = await admin.auth.admin.deleteUser(id);
-    if (error) console.log(`  could not delete user ${id}: ${error.message}`);
+    if (error) console.log(`  could not delete a test user${process.env.CI ? "" : ` ${id}`}: ${error.message}`);
   }
   const { count: left } = await admin.from("profiles").select("id", { count: "exact", head: true }).in("id", userIds.length ? userIds : [crypto.randomUUID()]);
   const { count: convLeft } = await admin
