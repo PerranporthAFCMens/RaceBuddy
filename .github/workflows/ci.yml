@@ -75,5 +75,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history, so migrations can be compared with the base branch.
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Each migration has a rollback, is never edited once merged, and does not
+      # drop or rename anything unless marked on purpose. See src/lib/migration-check.ts.
+      - run: npm run migrations:check
+        env:
+          MIGRATIONS_BASE: ${{ github.base_ref && format('origin/{0}', github.base_ref) || github.event.before }}
       # Runs the migration, seed and rule tests on the runner's own Postgres.
       - run: bash supabase/tests/run-tests.sh
