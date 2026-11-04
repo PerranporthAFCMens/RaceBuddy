@@ -1,15 +1,21 @@
 import { Suspense } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { Logo } from "@/components/Logo";
+import { themeFromSetting } from "@/design/tokens";
 import { getBadges } from "@/lib/badges";
-import { requireUser } from "@/lib/data";
+import { pickEvent, requireUser } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
-  const badges = await getBadges(await createClient(), user.id);
+  const [badges, { event }] = await Promise.all([
+    getBadges(await createClient(), user.id),
+    pickEvent(undefined),
+  ]);
+  // Athletes see the colour theme their race organiser chose (organisers.theme).
+  const theme = themeFromSetting(event?.organiser?.theme);
   return (
-    <>
+    <div data-theme={theme} className="flex flex-1 flex-col bg-bg text-fg">
       <header className="sticky top-0 z-20 border-b border-edge bg-bg pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-12 max-w-xl items-center justify-between px-4">
           <Logo href="/browse" />
@@ -21,6 +27,6 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       <Suspense fallback={null}>
         <BottomNav userId={user.id} badges={badges} />
       </Suspense>
-    </>
+    </div>
   );
 }

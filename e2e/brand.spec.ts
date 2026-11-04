@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { colors } from "../src/design/tokens.ts";
+import { themeColors, themes, type ThemeName } from "../src/design/tokens.ts";
 
 /** Screens anyone can open without signing in, plus the styleguide. */
 const SCREENS = [
@@ -9,13 +9,16 @@ const SCREENS = [
   { name: "join", path: "/login?mode=signup", heading: "Find your partner" },
   { name: "privacy", path: "/privacy", heading: "Privacy" },
   { name: "styleguide", path: "/styleguide", heading: "Styleguide" },
+  // Organiser themes (src/design/tokens.ts): same checks, in each theme's colours.
+  { name: "styleguide-monochrome", path: "/styleguide?theme=monochrome", heading: "Styleguide" },
+  { name: "styleguide-daylight", path: "/styleguide?theme=daylight", heading: "Styleguide" },
 ];
 
 const toRgb = (hex: string) => {
   const n = parseInt(hex.slice(1), 16);
   return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
 };
-const PALETTE = new Set(Object.values(colors).map(toRgb));
+const PALETTE = new Set((Object.keys(themes) as ThemeName[]).flatMap((name) => Object.values(themeColors(name))).map(toRgb));
 
 type Finding = { el: string; prop: string; value: string };
 

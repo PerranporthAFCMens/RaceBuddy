@@ -70,6 +70,17 @@ Contrast (WCAG 2.2 AA), checked by `npm test`:
 | danger on bg / panel | 5.4 / 4.8:1 | 4.5 |
 | line on panel | 4.8:1 | 3 (control edge) |
 
+### Organiser themes
+
+Each race organiser can pick one of three colour themes for their athletes:
+**Race Night** (the table above, the default), **Monochrome** (black and white,
+white takes gold's place) and **Daylight** (white pages, black text, deep gold
+`#7a5d0f` with white text on it). They live in `themes` in `tokens.ts`; each
+one only overrides some colours. Signed-in app screens use the theme of the
+athlete's race organiser (`organisers.theme`, e.g. `{"preset": "daylight"}`).
+Public pages always use Race Night. Use tokens, never a theme's hex, so every
+screen works in all three. Check a screen with `/styleguide?theme=daylight`.
+
 ## Type
 
 One free family, **Mona Sans** (OFL), chosen so the app doesn't look like
