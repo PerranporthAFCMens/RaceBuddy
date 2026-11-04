@@ -73,6 +73,8 @@ function useLiveBadges(userId: string, initial: Badges, pathname: string) {
       .channel(`badges:${userId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "partner_requests", filter: `to_user=eq.${userId}` }, refresh)
+      // You read a chat (maybe on another device).
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "conversation_members", filter: `user_id=eq.${userId}` }, refresh)
       .subscribe();
     return () => {
       alive = false;

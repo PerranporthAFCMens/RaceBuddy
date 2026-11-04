@@ -32,6 +32,7 @@ begin
     ('reports', 'SELECT'), ('reports', 'INSERT'),
     ('conversations', 'SELECT'), ('conversation_members', 'SELECT'),
     ('messages', 'SELECT'), ('messages', 'INSERT'),
+    ('message_reactions', 'SELECT'), ('message_reactions', 'INSERT'), ('message_reactions', 'DELETE'),
     ('partner_requests', 'SELECT'), ('lockins', 'SELECT'), ('match_alerts', 'SELECT'),
     ('athlete_profiles', 'SELECT'), ('feed_entries', 'SELECT')
   ), actual as (

@@ -410,3 +410,62 @@ do $$ begin
   assert (select results_url from public.athlete_profiles where first_name = 'Tom') = 'https://dbmaxresults.co.uk/results.aspx?CId=16421&RId=10029', 'Results link shown';
 end $$;
 reset role;
+
+-- Reactions and replies -------------------------------------------------------
+-- A message in the team chat, to check replies can't point across chats.
+insert into public.messages (conversation_id, sender_id, body)
+select id, :'cara', 'Team only' from public.conversations where kind = 'team';
+select id as team_msg from public.messages where body = 'Team only' \gset
+select id as pair_msg from public.messages where body = 'Brilliant, want to train Thursday?' \gset
+
+select pg_temp.act_as(:'jess');
+set role authenticated;
+-- Jess reacts to Tom's message. The chat id is taken from the message, not from her.
+insert into public.message_reactions (message_id, conversation_id, emoji)
+select id, gen_random_uuid(), '👍' from public.messages where body = 'Brilliant, want to train Thursday?';
+do $$ begin
+  assert (select r.conversation_id = m.conversation_id from public.message_reactions r join public.messages m on m.id = r.message_id),
+    'reaction belongs to the message''s chat';
+end $$;
+select pg_temp.expect_error(
+  $q$insert into public.message_reactions (message_id, emoji) select id, '👍' from public.messages where body = 'Brilliant, want to train Thursday?'$q$,
+  'duplicate key');
+select pg_temp.expect_error(
+  $q$insert into public.message_reactions (message_id, emoji) select id, '💩' from public.messages where body = 'Brilliant, want to train Thursday?'$q$,
+  'message_reactions_emoji_check');
+select pg_temp.expect_error(
+  format($q$insert into public.message_reactions (message_id, user_id, emoji) select id, %L, '🔥' from public.messages where body = 'Brilliant, want to train Thursday?'$q$, :'tom'),
+  'row-level security');
+-- Replies: fine in the same chat, refused across chats.
+insert into public.messages (conversation_id, sender_id, body, reply_to_id)
+select conversation_id, auth.uid(), 'Thursday works', id from public.messages where body = 'Brilliant, want to train Thursday?';
+select pg_temp.expect_error(
+  format($q$insert into public.messages (conversation_id, sender_id, body, reply_to_id) select id, auth.uid(), 'sneaky', %L from public.conversations where kind = 'pair'$q$, :'team_msg'),
+  'only reply to a message in this chat');
+reset role;
+
+-- Outsiders can't see or add reactions; nobody can remove someone else's.
+select pg_temp.act_as(:'dan');
+set role authenticated;
+do $$ begin
+  assert (select count(*) from public.message_reactions) = 0, 'outsider sees no reactions';
+end $$;
+select pg_temp.expect_error(
+  format($q$insert into public.message_reactions (message_id, emoji) values (%L, '👍')$q$, :'pair_msg'),
+  'row-level security');
+reset role;
+
+select pg_temp.act_as(:'tom');
+set role authenticated;
+delete from public.message_reactions;
+do $$ begin
+  assert (select count(*) from public.message_reactions) = 1, 'Tom sees the reaction but cannot remove it';
+end $$;
+reset role;
+select pg_temp.act_as(:'jess');
+set role authenticated;
+delete from public.message_reactions;
+do $$ begin
+  assert (select count(*) from public.message_reactions) = 0, 'Jess removes her own reaction';
+end $$;
+reset role;

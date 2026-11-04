@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { SubmitButton } from "@/components/SubmitButton";
 import { requireProfile } from "@/lib/data";
+import type { ReactionRow } from "@/lib/chat";
 import { createClient } from "@/lib/supabase/server";
 import type { AthleteProfile, Entry, FeedEntry, Lockin, Message } from "@/lib/types";
 import { blockUser, reportUser } from "./actions";
@@ -32,13 +33,17 @@ export default async function ChatPage({ params }: PageProps<"/chats/[id]">) {
   const conv = convData as unknown as Conversation | null;
   if (!conv?.event) notFound();
 
-  const [{ data: memberRows }, { data: messageRows }, { data: lockinRows }, { data: myEntryRow }] = await Promise.all([
-    supabase.from("conversation_members").select("user_id").eq("conversation_id", id),
-    supabase.from("messages").select("*").eq("conversation_id", id).order("created_at", { ascending: true }).limit(300),
+  const [{ data: memberRows }, { data: messageRows }, { data: lockinRows }, { data: myEntryRow }, { data: reactionRows }] = await Promise.all([
+    supabase.from("conversation_members").select("user_id, last_read_at").eq("conversation_id", id),
+    // The latest 300, put back in time order below.
+    supabase.from("messages").select("*").eq("conversation_id", id).order("created_at", { ascending: false }).limit(300),
     supabase.from("lockins").select("*").eq("conversation_id", id).order("created_at", { ascending: false }),
     supabase.from("entries").select("*").eq("user_id", user.id).eq("event_id", conv.event.id).maybeSingle(),
+    // Empty (with an error) until the reactions migration has run.
+    supabase.from("message_reactions").select("id, message_id, user_id, emoji").eq("conversation_id", id).limit(2000),
   ]);
-  const otherIds = ((memberRows ?? []) as { user_id: string }[]).map((m) => m.user_id).filter((u) => u !== user.id);
+  const members = ((memberRows ?? []) as { user_id: string; last_read_at: string }[]).filter((m) => m.user_id !== user.id);
+  const otherIds = members.map((m) => m.user_id);
   const [{ data: peopleRows }, { data: entryRows }] = await Promise.all([
     otherIds.length ? supabase.from("athlete_profiles").select("*").in("id", otherIds) : { data: [] },
     otherIds.length
@@ -90,9 +95,11 @@ export default async function ChatPage({ params }: PageProps<"/chats/[id]">) {
 
   return (
     <div className="space-y-4">
-      <header className="flex items-center gap-3 border-b border-edge pb-3">
-        <Link href="/chats" className="text-sm text-muted" aria-label="Back to chats">
-          ←
+      <header className="sticky top-[calc(3rem+env(safe-area-inset-top))] z-10 -mx-4 -mt-5 flex items-center gap-3 border-b border-edge bg-bg px-4 py-2">
+        <Link href="/chats" className="grid h-11 w-8 place-items-center text-muted hover:text-fg" aria-label="Back to chats">
+          <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth={1.8} aria-hidden>
+            <path d="M15 5l-7 7 7 7" />
+          </svg>
         </Link>
         {lead && <Avatar name={lead.first_name} path={lead.photo_path} size={40} />}
         <div className="min-w-0 flex-1">
@@ -119,7 +126,9 @@ export default async function ChatPage({ params }: PageProps<"/chats/[id]">) {
         conversationId={id}
         me={user.id}
         names={names}
-        initial={(messageRows ?? []) as Message[]}
+        initial={((messageRows ?? []) as Message[]).reverse()}
+        initialReactions={(reactionRows ?? []) as ReactionRow[]}
+        initialMembers={members.filter((m) => people.some((p) => p.id === m.user_id))}
         canSend={!blockedSomeone && people.length > 0}
       />
 
