@@ -72,8 +72,14 @@ begin
   with expected(f) as (values
     ('send_partner_request'), ('withdraw_partner_request'), ('respond_to_partner_request'),
     ('propose_lockin'), ('respond_to_lockin'), ('cancel_lockin'), ('my_matches'),
+    -- Organiser console: each checks the caller's organiser role first.
+    ('my_organisers'), ('organiser_event_stats'), ('organiser_members_list'),
+    ('organiser_lockins'), ('organiser_reports'), ('organiser_team'),
+    ('organiser_hide_member'), ('organiser_unhide_member'), ('organiser_set_report_status'),
+    ('organiser_add_member'), ('organiser_remove_member'), ('organiser_set_theme'),
+    ('organiser_update_event'),
     -- Used inside row rules and views, which run them as the signed-in person.
-    ('is_blocked_between'), ('is_member'), ('chat_has_block')
+    ('is_blocked_between'), ('is_member'), ('chat_has_block'), ('is_hidden_at')
   ), actual as (
     select p.proname::text f from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.prorettype <> 'trigger'::regtype
