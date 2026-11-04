@@ -136,6 +136,8 @@ export type Message = {
   sender_id: string;
   body: string;
   created_at: string;
+  /** The message this one answers, if any (added 2026-11-04; may be missing before that migration runs). */
+  reply_to_id?: string | null;
 };
 
 export type Lockin = {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
+import { DayDivider, MessageBubble, ReplyBar, TypingLine } from "@/components/chat/ChatParts";
 import { LoadingCards } from "@/components/LoadingCards";
 import { Logo } from "@/components/Logo";
 import { MatchedFlag, TicketFlag } from "@/components/TicketFlag";
@@ -170,6 +171,36 @@ export default function Styleguide() {
           </div>
           <TicketFlag hasTicket={false} />
         </div>
+      </section>
+
+      <section aria-labelledby="sg-chat" className="space-y-4">
+        <h2 id="sg-chat" className="heading">Chat</h2>
+        <div className="flex flex-col">
+          <DayDivider label="Today" />
+          <MessageBubble body="Still need a partner for Saturday?" mine={false} name="Sam" />
+          <MessageBubble
+            body="Yes! What's your 5km at the moment?"
+            mine
+            time="18:40"
+            reactions={[{ emoji: "👍", count: 1, mine: false, names: "Sam" }]}
+          />
+          <MessageBubble
+            body="About 22:30. Fancy a session at the gym on Thursday?"
+            mine={false}
+            name="Sam"
+            reply={{ name: "You", text: "Yes! What's your 5km at the moment?" }}
+            time="18:41"
+            open
+            reactions={[
+              { emoji: "🔥", count: 2, mine: true, names: "You, Jess" },
+              { emoji: "💪", count: 1, mine: false, names: "Jess" },
+            ]}
+          />
+          <MessageBubble body="Course map: https://www.keltx.co.uk/events" mine time="18:42" seen="Seen" links={[{ href: "https://www.keltx.co.uk/events", label: "keltx.co.uk" }]} />
+          <MessageBubble body="See you there" mine first={false} status="failed" />
+          <TypingLine names={["Sam"]} />
+        </div>
+        <ReplyBar name="Sam" text="About 22:30. Fancy a session at the gym on Thursday?" />
       </section>
 
       <section aria-labelledby="sg-loading" className="space-y-4">
