@@ -50,8 +50,14 @@ export function LoginForm({ initialMode, next, situation }: { initialMode: Mode;
               type="password"
               minLength={8}
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              aria-describedby={mode === "signup" ? "password-hint" : undefined}
               required
             />
+            {mode === "signup" && (
+              <span id="password-hint" className="mt-1 block text-xs text-muted">
+                At least 8 characters.
+              </span>
+            )}
           </label>
         )}
         {mode === "signup" && (
@@ -68,13 +74,15 @@ export function LoginForm({ initialMode, next, situation }: { initialMode: Mode;
         </SubmitButton>
       </ActionForm>
 
-      <button
-        type="button"
-        onClick={() => setMode(mode === "link" ? "signin" : "link")}
-        className="btn-ghost mt-4 w-full"
-      >
-        {mode === "link" ? "Use a password instead" : "Forgot password? Email me a sign-in link"}
-      </button>
+      {mode !== "signup" && (
+        <button
+          type="button"
+          onClick={() => setMode(mode === "link" ? "signin" : "link")}
+          className="btn-ghost mt-4 w-full"
+        >
+          {mode === "link" ? "Use a password instead" : "Forgot password? Email me a sign-in link"}
+        </button>
+      )}
     </div>
   );
 }

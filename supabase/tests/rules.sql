@@ -389,3 +389,24 @@ do $$ begin
   assert (select strava_url from public.athlete_profiles where first_name = 'Tom') = 'https://strava.app.link/AbC123', 'Strava link shown';
 end $$;
 reset role;
+
+-- Results link: only links to the listed results sites are stored, and other athletes see it.
+select pg_temp.act_as(:'tom');
+set role authenticated;
+select pg_temp.expect_error(
+  $q$update public.profiles set results_url = 'https://evil.example/results.aspx' where id = auth.uid()$q$,
+  'results_url');
+select pg_temp.expect_error(
+  $q$update public.profiles set results_url = 'https://dbmaxresults.co.uk.evil.example/' where id = auth.uid()$q$,
+  'results_url');
+select pg_temp.expect_error(
+  $q$update public.profiles set results_url = 'javascript:alert(1)' where id = auth.uid()$q$,
+  'results_url');
+update public.profiles set results_url = 'https://dbmaxresults.co.uk/results.aspx?CId=16421&RId=10029' where id = auth.uid();
+reset role;
+select pg_temp.act_as(:'jess');
+set role authenticated;
+do $$ begin
+  assert (select results_url from public.athlete_profiles where first_name = 'Tom') = 'https://dbmaxresults.co.uk/results.aspx?CId=16421&RId=10029', 'Results link shown';
+end $$;
+reset role;

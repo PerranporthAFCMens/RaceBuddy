@@ -7,11 +7,9 @@ import { formatEventDates } from "@/lib/format";
 import { SITUATIONS } from "@/lib/matching";
 
 const STEPS = [
-  ["Say what you're looking for", "A spare spot to fill, a spot on a team, or another single to enter with. Adults only."],
-  ["Pick who you want", "Category, race day, 5km pace and where they train."],
-  ["See your matches", "People who fit you come first, and we email you when a new one joins."],
-  ["Partner up", "Send a request. Chat opens once they accept, so no spam."],
-  ["Lock in", "The ticket holder locks in their new partner, and both show as Matched."],
+  ["Say what you need", "A partner for your spare spot, a spot on a team, or someone to enter with. Adults only."],
+  ["See who fits", "People who match your race, pace and area come first. We email you when someone new joins."],
+  ["Chat and lock in", "Chat opens once they accept your request. Then lock in your team before race day."],
 ];
 
 export default async function Home() {
@@ -24,10 +22,7 @@ export default async function Home() {
         <Logo size="lg" href={null} />
         <p className="mt-4 text-xs uppercase tracking-brand text-muted">{brand.tagline}</p>
         <h1 className="mx-auto mt-8 max-w-xl font-display text-2xl uppercase sm:text-3xl">Lost your partner? Find a new one.</h1>
-        <p className="mx-auto mt-4 max-w-md text-muted">
-          Doubles and relay racers who need a teammate, and athletes without a ticket who want in. Find each other,
-          chat, and lock in your team before race day.
-        </p>
+        <p className="mx-auto mt-4 max-w-md text-muted">Doubles and relay partners for race day, with or without a ticket.</p>
         <div className="mx-auto mt-8 grid max-w-md gap-3 text-left">
           <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted">What are you looking for?</p>
           {SITUATIONS.map((s) => (
