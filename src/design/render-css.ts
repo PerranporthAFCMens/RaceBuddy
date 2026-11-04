@@ -10,6 +10,7 @@ import {
   motion,
   displayVariation,
   spacingUnit,
+  themes,
 } from "./tokens.ts";
 
 /** Builds src/app/tokens.css from tokens.ts. Run with `npm run tokens`. */
@@ -23,6 +24,14 @@ export function renderTokensCss(): string {
     `  --focus-offset: ${focusRing.offset};`,
     "  color-scheme: dark;",
     "}",
+    "",
+    "/* Organiser themes: set data-theme on a wrapper to recolour everything inside it. */",
+    ...Object.entries(themes).flatMap(([name, theme]) => [
+      `[data-theme="${name}"] {`,
+      ...Object.entries(theme.colors).map(([token, value]) => `  --${token}: ${value};`),
+      `  color-scheme: ${theme.scheme};`,
+      "}",
+    ]),
     "",
     "/*",
     " * Tailwind theme. The `initial` lines remove Tailwind's default palette,",

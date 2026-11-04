@@ -41,7 +41,7 @@ export const getEvents = cache(async (): Promise<EventRow[]> => {
   const today = new Date().toISOString().slice(0, 10);
   let query = supabase
     .from("events")
-    .select("id, slug, name, venue, starts_on, ends_on, ticket_url, name_change_cutoff, organiser:organisers(name, website_url)")
+    .select("id, slug, name, venue, starts_on, ends_on, ticket_url, name_change_cutoff, organiser:organisers(name, website_url, theme)")
     .gte("ends_on", today)
     .order("starts_on");
   // The test race (is_test) is for trying things out: shown on the dev site

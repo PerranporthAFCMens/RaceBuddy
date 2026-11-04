@@ -5,7 +5,7 @@ import { test } from "node:test";
 import { brandProblems } from "../../eslint-rules/brand.mjs";
 import { contrastRatio } from "./contrast.ts";
 import { renderTokensCss } from "./render-css.ts";
-import { colors, contrastPairs } from "./tokens.ts";
+import { colors, contrastPairs, themeColors, themeFromSetting, themes, type ThemeName } from "./tokens.ts";
 
 const root = new URL("../../", import.meta.url).pathname;
 const read = (path: string) => readFileSync(join(root, path), "utf8");
@@ -17,12 +17,24 @@ function filesUnder(dir: string, ext: string): string[] {
     .map((e) => join(e.parentPath, e.name).slice(root.length));
 }
 
-test("every colour pair meets its WCAG contrast target", () => {
-  const failures = contrastPairs
-    .map((p) => ({ ...p, ratio: contrastRatio(colors[p.fg], colors[p.bg]) }))
-    .filter((p) => p.ratio < p.min)
-    .map((p) => `${p.fg} on ${p.bg} (${p.use}): ${p.ratio.toFixed(2)}:1, needs ${p.min}:1`);
-  assert.deepEqual(failures, []);
+for (const name of Object.keys(themes) as ThemeName[]) {
+  test(`every colour pair meets its WCAG contrast target (${name} theme)`, () => {
+    const c = themeColors(name);
+    const failures = contrastPairs
+      .map((p) => ({ ...p, ratio: contrastRatio(c[p.fg], c[p.bg]) }))
+      .filter((p) => p.ratio < p.min)
+      .map((p) => `${p.fg} on ${p.bg} (${p.use}): ${p.ratio.toFixed(2)}:1, needs ${p.min}:1`);
+    assert.deepEqual(failures, []);
+  });
+}
+
+test("an organiser's saved theme is read safely", () => {
+  assert.equal(themeFromSetting({ preset: "daylight" }), "daylight");
+  assert.equal(themeFromSetting({ preset: "monochrome" }), "monochrome");
+  assert.equal(themeFromSetting({}), "race-night");
+  assert.equal(themeFromSetting(null), "race-night");
+  assert.equal(themeFromSetting({ preset: "toString" }), "race-night");
+  assert.equal(themeFromSetting({ preset: "pink" }), "race-night");
 });
 
 test("contrast maths matches known WCAG values", () => {

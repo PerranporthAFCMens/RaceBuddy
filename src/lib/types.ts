@@ -12,7 +12,7 @@ export type EventRow = {
   ends_on: string;
   ticket_url: string | null;
   name_change_cutoff: string | null;
-  organiser: { name: string; website_url: string | null } | null;
+  organiser: { name: string; website_url: string | null; theme?: unknown } | null;
 };
 
 export type Category = {

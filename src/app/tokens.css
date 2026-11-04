@@ -18,6 +18,32 @@
   color-scheme: dark;
 }
 
+/* Organiser themes: set data-theme on a wrapper to recolour everything inside it. */
+[data-theme="race-night"] {
+  color-scheme: dark;
+}
+[data-theme="monochrome"] {
+  --panel: #0f0f0f;
+  --accent: #ffffff;
+  --accent-ink: #000000;
+  color-scheme: dark;
+}
+[data-theme="daylight"] {
+  --bg: #ffffff;
+  --panel: #f4f4f2;
+  --soft: #e9e9e6;
+  --edge: #d0d0cc;
+  --line: #767676;
+  --muted: #5c5c5c;
+  --hint: #6b6b6b;
+  --fg: #000000;
+  --accent: #7a5d0f;
+  --accent-ink: #ffffff;
+  --ok: #2e7d3a;
+  --danger: #c4262e;
+  color-scheme: light;
+}
+
 /*
  * Tailwind theme. The `initial` lines remove Tailwind's default palette,
  * shadows, radii and type scale, so only brand tokens generate classes.
