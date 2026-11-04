@@ -1,6 +1,9 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { getBadges, type Badges } from "@/lib/badges";
+import { createClient } from "@/lib/supabase/client";
 
 const ICONS: Record<string, React.ReactNode> = {
   "/browse": (
@@ -31,9 +34,63 @@ const TABS = [
   { href: "/me", label: "Me", match: ["/me"] },
 ];
 
-export function BottomNav({ badges }: { badges: Partial<Record<string, number>> }) {
+/** How often to re-check the counts while the app is open, as a safety net. */
+const REFRESH_MS = 30_000;
+
+/**
+ * Keeps the bottom-bar counts current without a page reload. The layout only
+ * renders once, so without this a new request never shows until you reload.
+ */
+function useLiveBadges(userId: string, initial: Badges, pathname: string) {
+  const supabase = useMemo(() => createClient(), []);
+  const [badges, setBadges] = useState(initial);
+  const [seen, setSeen] = useState(initial);
+  // A fresh server render (after an action) brings newer counts.
+  if (seen !== initial) {
+    setSeen(initial);
+    setBadges(initial);
+  }
+
+  useEffect(() => {
+    let alive = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const refresh = () => {
+      clearTimeout(timer);
+      // A short wait lets an open chat mark itself read first.
+      timer = setTimeout(() => {
+        getBadges(supabase, userId)
+          .then((b) => alive && setBadges(b))
+          .catch(() => undefined);
+      }, 600);
+    };
+    refresh();
+    const onVisible = () => document.visibilityState === "visible" && refresh();
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", refresh);
+    const interval = setInterval(refresh, REFRESH_MS);
+    // New messages (only ones you're allowed to read) and request changes.
+    const channel = supabase
+      .channel(`badges:${userId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "partner_requests", filter: `to_user=eq.${userId}` }, refresh)
+      .subscribe();
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", refresh);
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, userId, pathname]);
+
+  return badges;
+}
+
+export function BottomNav({ userId, badges: initial }: { userId: string; badges: Badges }) {
   const pathname = usePathname();
   const params = useSearchParams();
+  const badges = useLiveBadges(userId, initial, pathname);
   // First-time set-up runs without tabs, so people finish it.
   if (params.get("welcome") === "1" && pathname.startsWith("/me")) return null;
   return (

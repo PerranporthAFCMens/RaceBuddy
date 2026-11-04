@@ -1,32 +1,13 @@
 import { Suspense } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { Logo } from "@/components/Logo";
+import { getBadges } from "@/lib/badges";
 import { requireUser } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
-async function getBadges(userId: string) {
-  const supabase = await createClient();
-  const [{ count: requests }, { data: memberships }] = await Promise.all([
-    supabase
-      .from("partner_requests")
-      .select("id", { count: "exact", head: true })
-      .eq("to_user", userId)
-      .eq("status", "pending"),
-    supabase
-      .from("conversation_members")
-      .select("last_read_at, conversation:conversations(last_message_at)")
-      .eq("user_id", userId),
-  ]);
-  const unread = ((memberships ?? []) as unknown as {
-    last_read_at: string;
-    conversation: { last_message_at: string | null } | null;
-  }[]).filter((m) => m.conversation?.last_message_at && m.conversation.last_message_at > m.last_read_at).length;
-  return { "/requests": requests ?? 0, "/chats": unread };
-}
-
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
-  const badges = await getBadges(user.id);
+  const badges = await getBadges(await createClient(), user.id);
   return (
     <>
       <header className="sticky top-0 z-20 border-b border-edge bg-bg pt-[env(safe-area-inset-top)]">
@@ -38,7 +19,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         {children}
       </main>
       <Suspense fallback={null}>
-        <BottomNav badges={badges} />
+        <BottomNav userId={user.id} badges={badges} />
       </Suspense>
     </>
   );
