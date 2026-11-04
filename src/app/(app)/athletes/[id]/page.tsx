@@ -93,15 +93,29 @@ export default async function AthletePage({ params }: PageProps<"/athletes/[id]"
         </dl>
         {entry.note && <p className="border-l-2 border-accent pl-3 text-sm">{entry.note}</p>}
         {profile.bio && <p className="text-sm text-muted">{profile.bio}</p>}
-        {profile.strava_url && (
-          <a
-            href={profile.strava_url}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-4"
-          >
-            {profile.first_name} on Strava
-          </a>
+        {(profile.results_url || profile.strava_url) && (
+          <div className="flex flex-wrap gap-x-6">
+            {profile.results_url && (
+              <a
+                href={profile.results_url}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-4"
+              >
+                {profile.first_name}&apos;s race results
+              </a>
+            )}
+            {profile.strava_url && (
+              <a
+                href={profile.strava_url}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-4"
+              >
+                {profile.first_name} on Strava
+              </a>
+            )}
+          </div>
         )}
 
         {isMe ? (

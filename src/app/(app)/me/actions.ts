@@ -7,6 +7,7 @@ import { z } from "zod";
 import { getMyEntries, requireUser } from "@/lib/data";
 import { ageOn, durationFromParts, formatDuration } from "@/lib/format";
 import { isSituation } from "@/lib/matching";
+import { normaliseResultsUrl } from "@/lib/results-link";
 import { normaliseStravaUrl } from "@/lib/strava";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -37,13 +38,14 @@ const profileSchema = z.object({
   best_race_s: z.string().optional(),
   bio: optionalText(500),
   strava_url: z.string().max(200, "That Strava link is too long.").optional(),
+  results_url: z.string().max(300, "That results link is too long.").optional(),
 });
 
 export async function saveProfile(_: ActionState, formData: FormData): Promise<ActionState> {
   const user = await requireUser();
   const parsed = profileSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
-  const { five_k_m, five_k_s, best_race_h, best_race_m, best_race_s, strava_url, ...fields } = parsed.data;
+  const { five_k_m, five_k_s, best_race_h, best_race_m, best_race_s, strava_url, results_url, ...fields } = parsed.data;
 
   if (ageOn(fields.date_of_birth) < 18) {
     return { error: `${brand.name} is for adults only (18+). Sorry!` };
@@ -60,6 +62,10 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
   const strava = normaliseStravaUrl(strava_url);
   if (strava === undefined) {
     return { error: "That isn't a Strava profile link. It should look like strava.com/athletes/12345." };
+  }
+  const results = normaliseResultsUrl(results_url);
+  if (results === undefined) {
+    return { error: "That results link isn't from a site we know. Use a DB Max or HYROX results page." };
   }
 
   const supabase = await createClient();
@@ -82,6 +88,7 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
     five_k_seconds: fiveK,
     best_race_time: bestRace === null ? null : formatDuration(bestRace),
     strava_url: strava,
+    results_url: results,
     ...(photo_path ? { photo_path } : {}),
   });
   if (error) return { error: error.message.includes("adults only") ? `${brand.name} is for adults only (18+).` : "Couldn't save your profile. Please try again." };

@@ -30,6 +30,8 @@ export type Category = {
 export type Profile = {
   /** Added by migration 20261101230000_strava_link; optional until it has run. */
   strava_url?: string | null;
+  /** Added by migration 20261104180000_results_link; optional until it has run. */
+  results_url?: string | null;
   id: string;
   first_name: string;
   date_of_birth: string;
@@ -100,6 +102,8 @@ export type FeedEntry = {
 export type AthleteProfile = {
   /** Added by migration 20261101230000_strava_link; optional until it has run. */
   strava_url?: string | null;
+  /** Added by migration 20261104180000_results_link; optional until it has run. */
+  results_url?: string | null;
   id: string;
   first_name: string;
   age: number;
