@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "verify": "next typegen && npm run lint && npm run typecheck && npm run tokens:check && npm run security:check && npm test",
+    "verify": "next typegen && npm run lint && npm run typecheck && npm run tokens:check && npm run auth-emails:check && npm run security:check && npm test",
     "build:vercel": "npm run verify && next build",
     "start": "next start",
     "lint": "eslint",
@@ -20,6 +20,8 @@
     "test": "node --test --experimental-strip-types \"src/**/*.test.ts\"",
     "tokens": "node --experimental-strip-types scripts/build-tokens.mts",
     "tokens:check": "node --experimental-strip-types scripts/build-tokens.mts --check",
+    "auth-emails": "node --experimental-strip-types scripts/build-auth-emails.mts",
+    "auth-emails:check": "node --experimental-strip-types scripts/build-auth-emails.mts --check",
     "security:check": "node --experimental-strip-types scripts/security-check.mts",
     "test:brand": "playwright test",
     "test:brand:update": "playwright test --update-snapshots"
