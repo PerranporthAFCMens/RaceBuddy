@@ -680,3 +680,25 @@ do $$ begin
   assert public.purge_closed_reports() = 1, 'old closed report purged';
   assert (select count(*) from public.report_evidence) = 0, 'its evidence went too';
 end $$;
+
+-- Word filter: blocked words are refused, everyday text and place names are not.
+select pg_temp.act_as(:'uma');
+set role authenticated;
+select pg_temp.expect_error(
+  format($q$insert into public.messages (conversation_id, sender_id, body) values (%L, auth.uid(), 'you SLUTS')$q$, :'safety_conv'),
+  'word we don''t allow');
+select pg_temp.expect_error(
+  format($q$insert into public.messages (conversation_id, sender_id, body) values (%L, auth.uid(), 'just k-y-s... no: kill  yourself')$q$, :'safety_conv'),
+  'word we don''t allow');
+select pg_temp.expect_error(
+  format($q$insert into public.messages (conversation_id, sender_id, body) values (%L, auth.uid(), 'p0rn')$q$, :'safety_conv'),
+  'word we don''t allow');
+insert into public.messages (conversation_id, sender_id, body)
+values (:'safety_conv', auth.uid(), 'Training in Scunthorpe, then Cockington. Bloody hard 5k!');
+select pg_temp.expect_error(
+  $q$update public.profiles set bio = 'Total whore for burpees' where id = auth.uid()$q$,
+  'word we don''t allow');
+update public.profiles set bio = 'Love wall balls' where id = auth.uid();
+select pg_temp.expect_error($q$select public.has_blocked_word('x')$q$, 'permission denied');
+select pg_temp.expect_error($q$select * from public.blocked_words$q$, 'permission denied');
+reset role;

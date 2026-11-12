@@ -6,6 +6,7 @@ import { z } from "zod";
 import { sendPendingAlerts } from "@/lib/alerts/send";
 import { requireProfile } from "@/lib/data";
 import { REGIONS } from "@/lib/format";
+import { BLOCKED_WORD_TEXT, isBlockedWordError } from "@/lib/safety";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { checkOrder } from "@/lib/ticket-tailor/client";
@@ -121,6 +122,7 @@ export async function saveEntry(_: ActionState, formData: FormData): Promise<Act
     .upsert(row, { onConflict: "user_id,event_id" })
     .select("id, ticket_verified, status")
     .single();
+  if (isBlockedWordError(error?.message)) return { error: BLOCKED_WORD_TEXT };
   if (error || !saved) return { error: "Couldn't save your listing. Please try again." };
 
   let message = "Listing saved.";

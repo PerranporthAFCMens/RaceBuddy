@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { isReportCategory, isSuspendedError, REPORT_CATEGORIES, reportCategoryLabel, safeBlockRedirect } from "./safety.ts";
+import { BLOCKED_WORD_TEXT, isBlockedWordError, isReportCategory, isSuspendedError, REPORT_CATEGORIES, reportCategoryLabel, safeBlockRedirect } from "./safety.ts";
 
 test("report categories match the database list", () => {
   const sql = readFileSync("supabase/migrations/20261112120000_safety.sql", "utf8");
@@ -27,4 +27,12 @@ test("block only redirects to known pages", () => {
   assert.equal(safeBlockRedirect("/browse"), "/browse");
   assert.equal(safeBlockRedirect("https://evil.example"), "/chats");
   assert.equal(safeBlockRedirect(null), "/chats");
+});
+
+test("blocked-word errors match the database wording", () => {
+  const sql = readFileSync("supabase/migrations/20261112200000_word_filter.sql", "utf8");
+  assert.ok(sql.includes(BLOCKED_WORD_TEXT.replace("don't", "don''t")));
+  assert.equal(isBlockedWordError(BLOCKED_WORD_TEXT), true);
+  assert.equal(isBlockedWordError("Slow down"), false);
+  assert.equal(isBlockedWordError(undefined), false);
 });
