@@ -1,18 +1,31 @@
-# Race Buddy status
+# YGIG status
 
-Short current-state page. Per-change notes are in `docs/notes/`.
+Short current-state page. Per-change notes are in `docs/notes/`. The code
+still uses the working name "Race Buddy" in places (repo, Vercel projects);
+the product name comes only from `src/design/brand.ts`.
 
 ## Sites
 
-- Live: https://race-buddy-livid.vercel.app (Vercel `race-buddy`, branch `main`, live Supabase).
-- Dev: Vercel `race-buddy-dev`, branch `dev`, same Supabase. Being set up; see `ENVIRONMENT.md`.
+- Live: https://www.ygig.co.uk (Vercel `race-buddy`, branch `main`). The old
+  https://race-buddy-livid.vercel.app address still works.
+- Dev: https://race-buddy-dev.vercel.app (Vercel `race-buddy-dev`, branch `dev`,
+  gold "Dev site" bar).
+- Both sites use the same Supabase project. See `ENVIRONMENT.md`.
 
 ## Database
 
-Migrations applied (checked 2026-11-01): `20261029120000_core.sql`, `seed.sql`, `20261029170000_looking_for.sql`, `20261030120000_test_race.sql`. Waiting for Adam to run: `20261101120000_lock_down_match_alerts.sql`. Adam runs SQL by hand in the Supabase SQL editor; merging does not apply it.
+Adam runs each migration by hand in the Supabase SQL editor; merging does not
+apply it. Checked 2026-11-12: `npm run test:live` passes 67/67 against the
+shared database, which covers every migration up to
+`20261112160000_fix_chat_report_evidence.sql`. The live test does not cover
+`20261112200000_word_filter.sql`, so confirm that one before relying on it.
 
 ## Next work
 
-- Stripe name-change payment and Ticket Tailor discount code.
-- Organiser view (admin, owner, read-only staff).
-- iOS app with Capacitor.
+- Organiser view (admin, organiser owner, read-only organiser staff).
+- Phone apps (iOS and Android) with Capacitor, then the App Store and Google Play.
+- Email alerts: switch on once `RESEND_API_KEY` and `CRON_SECRET` are set in
+  both Vercel projects.
+
+YGIG only makes the introduction between athletes. Name changes and payments
+are handled by the athletes and the organiser, not by YGIG.
