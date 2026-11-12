@@ -29,6 +29,7 @@ function layout({ heading, intro, button, after }: { heading: string; intro: str
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px">
 <tr><td style="padding-bottom:28px;border-bottom:2px solid ${c.accent}">
 <p style="margin:0;font:900 22px ${font};letter-spacing:4px;color:${c.fg}">${brand.wordmark.lead}<span style="color:${c.accent}">${brand.wordmark.accent}</span></p>
+<p style="margin:8px 0 0;font:700 12px ${font};letter-spacing:4px;text-transform:uppercase;color:${c.fg}">${brand.meaning}</p>
 <p style="margin:6px 0 0;font:11px ${font};letter-spacing:3px;text-transform:uppercase;color:${c.muted}">${brand.tagline}</p>
 </td></tr>
 <tr><td style="padding:28px 0 0">

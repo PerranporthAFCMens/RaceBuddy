@@ -11,7 +11,7 @@ const monaSans = Mona_Sans({ variable: "--font-mona-sans", subsets: ["latin"], a
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   applicationName: brand.name,
-  title: { default: brand.name, template: `%s · ${brand.name}` },
+  title: { default: `${brand.name} · ${brand.meaning}`, template: `%s · ${brand.name}` },
   description: brand.description,
   appleWebApp: { capable: true, title: brand.shortName, statusBarStyle: "black-translucent" },
   // Keep the test site out of search results.

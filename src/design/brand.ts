@@ -14,6 +14,8 @@ export const brand = {
   shortName: name,
   /** Wordmark text: the name in capitals with the last letter set in gold. */
   wordmark: { lead: name.toUpperCase().slice(0, -1), accent: name.toUpperCase().slice(-1) },
+  /** What the name stands for. Shown under the big logo and in emails. */
+  meaning: "You Go I Go",
   tagline: "The partner finder for fitness races",
   /** The public web domain (without www). Used for the contact email. */
   domain: "ygig.co.uk",

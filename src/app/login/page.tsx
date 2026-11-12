@@ -18,7 +18,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <main className="mx-auto w-full max-w-sm flex-1 px-4 py-12">
       <div className="mb-10 text-center">
-        <Logo />
+        <Logo meaning />
       </div>
       <h1 className="heading mb-3">{mode === "signup" ? "Find your partner" : "Welcome back"}</h1>
       <p className="mb-8 text-center text-sm text-muted">
