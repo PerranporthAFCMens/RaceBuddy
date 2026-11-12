@@ -9,7 +9,7 @@ The `brand` check then fails on its screenshot test, because the logo text chang
 
 Not covered by the one line (do these when the new name is final):
 
-- **App icon**: `src/app/icon.svg` and `public/icon.svg` show the letters "RB". A new name needs a new icon.
+- **App icon**: the PNG files `src/app/icon.png`, `src/app/apple-icon.png` and `public/icons/*.png` show the letters "YG / IG". A new name needs new icon images (see `docs/notes/2026-11-12-home-screen-icon.md`).
 - **Logo colour split**: the last letter is gold by default. To pick a different split, set `wordmark` by hand in `brand.ts`.
 - Optional, nobody sees these: `package.json` name, Vercel project names (`race-buddy`, `race-buddy-dev`), the test organiser slug `race-buddy-test`, and the doc titles.
 

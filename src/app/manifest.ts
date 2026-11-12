@@ -11,6 +11,11 @@ export default function manifest(): MetadataRoute.Manifest {
     display: "standalone",
     background_color: colors.bg,
     theme_color: colors.bg,
-    icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
+    // PNG icons so every phone shows the same picture (see docs/notes/2026-11-12-home-screen-icon.md).
+    icons: [
+      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icons/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+    ],
   };
 }
