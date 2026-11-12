@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
+import { ReportForm } from "@/components/ReportForm";
+import { SubmitButton } from "@/components/SubmitButton";
 import { MatchedFlag, TicketFlag } from "@/components/TicketFlag";
 import { getCategories, getMyEntries, requireProfile } from "@/lib/data";
 import { formatRaceTime, photoUrl } from "@/lib/format";
 import { situationLabel } from "@/lib/matching";
 import { createClient } from "@/lib/supabase/server";
 import type { AthleteProfile, FeedEntry, PartnerRequest } from "@/lib/types";
+import { blockUser } from "../../safety/actions";
 import { RequestForm } from "./RequestForm";
 
 export const metadata = { title: "Athlete" };
@@ -93,6 +96,30 @@ export default async function AthletePage({ params }: PageProps<"/athletes/[id]"
         </dl>
         {entry.note && <p className="border-l-2 border-accent pl-3 text-sm">{entry.note}</p>}
         {profile.bio && <p className="text-sm text-muted">{profile.bio}</p>}
+        {(profile.results_url || profile.strava_url) && (
+          <div className="flex flex-wrap gap-x-6">
+            {profile.results_url && (
+              <a
+                href={profile.results_url}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-4"
+              >
+                {profile.first_name}&apos;s race results
+              </a>
+            )}
+            {profile.strava_url && (
+              <a
+                href={profile.strava_url}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="inline-flex min-h-11 items-center text-sm font-semibold text-accent underline underline-offset-4"
+              >
+                {profile.first_name} on Strava
+              </a>
+            )}
+          </div>
+        )}
 
         {isMe ? (
           <Link href="/me" className="btn-line w-full">
@@ -116,6 +143,25 @@ export default async function AthletePage({ params }: PageProps<"/athletes/[id]"
           </Link>
         ) : (
           <RequestForm entryId={entry.id} isTeam={isTeam} firstName={profile.first_name} />
+        )}
+
+        {!isMe && (
+          <details className="border-t border-edge pt-3 text-sm">
+            <summary className="flex min-h-11 cursor-pointer items-center text-muted">Block or report {profile.first_name}</summary>
+            <div className="mt-3 space-y-4">
+              <ReportForm people={[{ id: profile.id, name: profile.first_name }]} />
+              <form action={blockUser}>
+                <input type="hidden" name="user_id" value={profile.id} />
+                <input type="hidden" name="next" value="/browse" />
+                <SubmitButton className="btn-danger w-full" pendingText="Blocking…">
+                  Block {profile.first_name}
+                </SubmitButton>
+              </form>
+              <p className="text-xs text-muted">
+                Blocked athletes can&apos;t see you or message you, and you won&apos;t see them. They aren&apos;t told. You can unblock from My profile.
+              </p>
+            </div>
+          </details>
         )}
       </div>
     </div>

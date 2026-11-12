@@ -205,6 +205,20 @@ do $$ begin
 end $$;
 reset role;
 
+-- Dan sees who he blocked (so he can unblock); Cara doesn't see that Dan blocked her.
+select pg_temp.act_as(:'cara');
+set role authenticated;
+do $$ begin
+  assert (select count(*) from public.my_blocks()) = 0, 'blocked person is not told';
+end $$;
+reset role;
+select pg_temp.act_as(:'dan');
+set role authenticated;
+do $$ begin
+  assert (select first_name from public.my_blocks()) = 'Cara', 'own blocked list';
+end $$;
+reset role;
+
 -- Signed-out visitors see events but no people.
 select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', 'anon', false);
 set role anon;
@@ -336,3 +350,333 @@ do $$ declare ev uuid := (select id from public.events where slug = 'test-race')
   assert ev is not null, 'test race visible to signed-in people';
 end $$;
 reset role;
+
+-- Rate limits ------------------------------------------------------------------
+-- Tom can send 20 messages a minute; the 21st is refused.
+select pg_temp.act_as(:'tom');
+set role authenticated;
+do $$
+declare conv uuid := (select c.id from public.conversations c join public.conversation_members m on m.conversation_id = c.id
+                      where m.user_id = auth.uid() and c.kind = 'pair' and not public.chat_has_block(c.id, auth.uid()) limit 1);
+begin
+  while (select count(*) from public.messages where sender_id = auth.uid() and created_at > now() - interval '1 minute') < 20 loop
+    insert into public.messages (conversation_id, sender_id, body) values (conv, auth.uid(), 'hello');
+  end loop;
+  perform pg_temp.expect_error(format($q$insert into public.messages (conversation_id, sender_id, body) values (%L, auth.uid(), 'one too many')$q$, conv), 'Slow down');
+end $$;
+reset role;
+
+-- Dan can file 10 reports a day; the 11th is refused.
+select pg_temp.act_as(:'dan');
+set role authenticated;
+do $$ begin
+  while (select count(*) from public.reports where reporter_id = auth.uid()) < 10 loop
+    insert into public.reports (reporter_id, reported_id, reason) values (auth.uid(), '11111111-1111-1111-1111-111111111111', 'test report');
+  end loop;
+end $$;
+select pg_temp.expect_error(
+  $q$insert into public.reports (reporter_id, reported_id, reason) values (auth.uid(), '11111111-1111-1111-1111-111111111111', 'one too many')$q$,
+  'Slow down');
+reset role;
+
+-- People cannot read or write the order-check counter.
+select pg_temp.act_as(:'tom');
+set role authenticated;
+select pg_temp.expect_error($q$select count(*) from public.ticket_checks$q$, 'permission denied');
+reset role;
+
+-- Strava link: only real Strava profile links are stored, and other athletes see it.
+select pg_temp.act_as(:'tom');
+set role authenticated;
+select pg_temp.expect_error(
+  $q$update public.profiles set strava_url = 'https://evil.example/athletes/1' where id = auth.uid()$q$,
+  'strava_url');
+select pg_temp.expect_error(
+  $q$update public.profiles set strava_url = 'javascript:alert(1)' where id = auth.uid()$q$,
+  'strava_url');
+update public.profiles set strava_url = 'https://www.strava.com/athletes/12345' where id = auth.uid();
+update public.profiles set strava_url = 'https://strava.app.link/AbC123' where id = auth.uid();
+reset role;
+select pg_temp.act_as(:'jess');
+set role authenticated;
+do $$ begin
+  assert (select strava_url from public.athlete_profiles where first_name = 'Tom') = 'https://strava.app.link/AbC123', 'Strava link shown';
+end $$;
+reset role;
+
+-- Results link: only links to the listed results sites are stored, and other athletes see it.
+select pg_temp.act_as(:'tom');
+set role authenticated;
+select pg_temp.expect_error(
+  $q$update public.profiles set results_url = 'https://evil.example/results.aspx' where id = auth.uid()$q$,
+  'results_url');
+select pg_temp.expect_error(
+  $q$update public.profiles set results_url = 'https://dbmaxresults.co.uk.evil.example/' where id = auth.uid()$q$,
+  'results_url');
+select pg_temp.expect_error(
+  $q$update public.profiles set results_url = 'javascript:alert(1)' where id = auth.uid()$q$,
+  'results_url');
+update public.profiles set results_url = 'https://dbmaxresults.co.uk/results.aspx?CId=16421&RId=10029' where id = auth.uid();
+reset role;
+select pg_temp.act_as(:'jess');
+set role authenticated;
+do $$ begin
+  assert (select results_url from public.athlete_profiles where first_name = 'Tom') = 'https://dbmaxresults.co.uk/results.aspx?CId=16421&RId=10029', 'Results link shown';
+end $$;
+reset role;
+
+-- Reactions and replies -------------------------------------------------------
+-- A message in the team chat, to check replies can't point across chats.
+insert into public.messages (conversation_id, sender_id, body)
+select id, :'cara', 'Team only' from public.conversations where kind = 'team';
+select id as team_msg from public.messages where body = 'Team only' \gset
+select id as pair_msg from public.messages where body = 'Brilliant, want to train Thursday?' \gset
+
+select pg_temp.act_as(:'jess');
+set role authenticated;
+-- Jess reacts to Tom's message. The chat id is taken from the message, not from her.
+insert into public.message_reactions (message_id, conversation_id, emoji)
+select id, gen_random_uuid(), '👍' from public.messages where body = 'Brilliant, want to train Thursday?';
+do $$ begin
+  assert (select r.conversation_id = m.conversation_id from public.message_reactions r join public.messages m on m.id = r.message_id),
+    'reaction belongs to the message''s chat';
+end $$;
+select pg_temp.expect_error(
+  $q$insert into public.message_reactions (message_id, emoji) select id, '👍' from public.messages where body = 'Brilliant, want to train Thursday?'$q$,
+  'duplicate key');
+select pg_temp.expect_error(
+  $q$insert into public.message_reactions (message_id, emoji) select id, '💩' from public.messages where body = 'Brilliant, want to train Thursday?'$q$,
+  'message_reactions_emoji_check');
+select pg_temp.expect_error(
+  format($q$insert into public.message_reactions (message_id, user_id, emoji) select id, %L, '🔥' from public.messages where body = 'Brilliant, want to train Thursday?'$q$, :'tom'),
+  'row-level security');
+-- Replies: fine in the same chat, refused across chats.
+insert into public.messages (conversation_id, sender_id, body, reply_to_id)
+select conversation_id, auth.uid(), 'Thursday works', id from public.messages where body = 'Brilliant, want to train Thursday?';
+select pg_temp.expect_error(
+  format($q$insert into public.messages (conversation_id, sender_id, body, reply_to_id) select id, auth.uid(), 'sneaky', %L from public.conversations where kind = 'pair'$q$, :'team_msg'),
+  'only reply to a message in this chat');
+reset role;
+
+-- Outsiders can't see or add reactions; nobody can remove someone else's.
+select pg_temp.act_as(:'dan');
+set role authenticated;
+do $$ begin
+  assert (select count(*) from public.message_reactions) = 0, 'outsider sees no reactions';
+end $$;
+select pg_temp.expect_error(
+  format($q$insert into public.message_reactions (message_id, emoji) values (%L, '👍')$q$, :'pair_msg'),
+  'row-level security');
+reset role;
+
+select pg_temp.act_as(:'tom');
+set role authenticated;
+delete from public.message_reactions;
+do $$ begin
+  assert (select count(*) from public.message_reactions) = 1, 'Tom sees the reaction but cannot remove it';
+end $$;
+reset role;
+select pg_temp.act_as(:'jess');
+set role authenticated;
+delete from public.message_reactions;
+do $$ begin
+  assert (select count(*) from public.message_reactions) = 0, 'Jess removes her own reaction';
+end $$;
+reset role;
+
+-- Safety: date of birth lock, Terms, reports, evidence, moderation ----------
+\set ria 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'
+\set sam 'cccccccc-cccc-cccc-cccc-cccccccccccc'
+\set uma 'dddddddd-dddd-dddd-dddd-dddddddddddd'
+insert into auth.users (id, email) values
+  (:'ria', 'ria@example.com'), (:'sam', 'Sam@Example.com'), (:'uma', 'uma@example.com');
+insert into public.admins (user_id) values (:'ria');
+
+select pg_temp.act_as(:'ria');
+set role authenticated;
+insert into public.profiles (id, first_name, date_of_birth) values (:'ria', 'Ria', '1985-01-01');
+reset role;
+select pg_temp.act_as(:'uma');
+set role authenticated;
+insert into public.profiles (id, first_name, date_of_birth, terms_version, terms_accepted_at)
+values (:'uma', 'Uma', '1995-06-06', '2026-11', '2000-01-01');
+do $$ begin
+  assert (select terms_accepted_at > now() - interval '1 minute' from public.profiles where id = auth.uid()),
+    'Terms time comes from the server';
+end $$;
+-- Saving the same date of birth is fine; changing it is not.
+update public.profiles set date_of_birth = '1995-06-06', bio = 'Hi' where id = auth.uid();
+select pg_temp.expect_error(
+  $q$update public.profiles set date_of_birth = '1990-06-06' where id = auth.uid()$q$,
+  'can''t be changed');
+insert into public.entries (user_id, event_id, has_ticket, category_id)
+select :'uma', e.id, true, c.id
+from public.events e join public.categories c on c.event_id = e.id
+where e.slug = 'keltx-exeter-2027' and c.tt_ticket_type_id = 'tt_7001178';
+reset role;
+
+select pg_temp.act_as(:'sam');
+set role authenticated;
+insert into public.profiles (id, first_name, date_of_birth) values (:'sam', 'Sam', '1993-03-03');
+insert into public.entries (user_id, event_id, has_ticket)
+select :'sam', e.id, false from public.events e where e.slug = 'keltx-exeter-2027';
+select public.send_partner_request((select id from public.feed_entries where first_name = 'Uma'));
+reset role;
+select pg_temp.act_as(:'uma');
+set role authenticated;
+select public.respond_to_partner_request(
+  (select id from public.partner_requests where status = 'pending' and to_user = auth.uid()), true);
+reset role;
+select c.id as safety_conv from public.conversations c
+join public.conversation_members m on m.conversation_id = c.id where m.user_id = :'sam' \gset
+select pg_temp.act_as(:'sam');
+set role authenticated;
+insert into public.messages (conversation_id, sender_id, body) values (:'safety_conv', auth.uid(), 'Hi Uma');
+insert into public.messages (conversation_id, sender_id, body) values (:'safety_conv', auth.uid(), 'I know where you live');
+reset role;
+select id as threat_msg from public.messages where body = 'I know where you live' \gset
+
+-- Uma reports the message. The database fills in who and how urgent.
+select pg_temp.act_as(:'uma');
+set role authenticated;
+select pg_temp.expect_error(
+  format($q$insert into public.reports (reporter_id, message_id, category, reason) values (auth.uid(), %L, 'threat', 'not my chat')$q$, :'pair_msg'),
+  'only report a chat you are in');
+select pg_temp.expect_error(
+  format($q$insert into public.reports (reporter_id, reported_id, conversation_id, reason) values (auth.uid(), %L, %L, 'not my chat')$q$, :'tom', :'safety_conv'),
+  'isn''t in this chat');
+select pg_temp.expect_error(
+  $q$insert into public.reports (reporter_id, reason) values (auth.uid(), 'nobody')$q$,
+  'Choose who to report');
+insert into public.reports (reporter_id, message_id, category, reason, priority, status)
+values (auth.uid(), :'threat_msg', 'threat', 'Threatening message', 'normal', 'dismissed');
+do $$ begin
+  assert (select reported_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc' and priority = 'urgent' and status = 'open'
+          from public.reports where reporter_id = auth.uid()), 'report filled in by the database';
+end $$;
+-- People can't see evidence, other people's reports, or the logs, and can't moderate.
+select pg_temp.expect_error($q$select count(*) from public.report_evidence$q$, 'permission denied');
+select pg_temp.expect_error($q$insert into public.admins (user_id) values (auth.uid())$q$, 'permission denied');
+select pg_temp.expect_error(
+  $q$select * from public.admin_report_evidence((select id from public.reports limit 1), 'curious')$q$, 'Admins only');
+select pg_temp.expect_error(
+  format($q$select public.moderate('ban', null, %L)$q$, :'tom'), 'Admins only');
+select pg_temp.expect_error($q$update public.reports set status = 'dismissed'$q$, 'permission denied');
+select pg_temp.expect_error($q$select * from public.admin_reports('all')$q$, 'Admins only');
+select pg_temp.expect_error(format($q$select * from public.admin_person(%L)$q$, :'sam'), 'Admins only');
+select pg_temp.expect_error($q$select public.purge_closed_reports()$q$, 'permission denied');
+do $$ begin
+  assert (select count(*) from public.reports) = 1, 'sees only her own report';
+  assert (select count(*) from public.moderation_actions) = 0, 'no moderation log';
+  assert (select count(*) from public.evidence_access_log) = 0, 'no evidence log';
+  assert not public.is_admin(), 'not an admin';
+end $$;
+reset role;
+select id as threat_report from public.reports where message_id = :'threat_msg' \gset
+do $$ begin
+  assert (select count(*) from public.report_evidence) = 2, 'reported message and the one before';
+  assert (select count(*) from public.report_evidence where is_reported) = 1, 'reported message marked';
+end $$;
+
+-- A report about a whole chat (no single message) copies its latest messages,
+-- with none marked as the reported one. Removed again so later counts hold.
+select pg_temp.act_as(:'uma');
+set role authenticated;
+insert into public.reports (reporter_id, reported_id, conversation_id, category, reason)
+values (auth.uid(), 'cccccccc-cccc-cccc-cccc-cccccccccccc', :'safety_conv', 'harassment', 'Whole chat');
+reset role;
+do $$ begin
+  assert (select count(*) from public.report_evidence e join public.reports r on r.id = e.report_id
+          where r.reason = 'Whole chat') = 2, 'chat report copies the chat';
+  assert not exists (select 1 from public.report_evidence e join public.reports r on r.id = e.report_id
+                     where r.reason = 'Whole chat' and e.is_reported), 'no single message marked';
+end $$;
+delete from public.reports where reason = 'Whole chat';
+
+-- The admin sees every report, and opening evidence needs a reason and is logged.
+select pg_temp.act_as(:'ria');
+set role authenticated;
+do $$ begin
+  assert (select count(*) from public.reports) > 10, 'admin sees all reports';
+end $$;
+select pg_temp.expect_error(
+  format($q$select * from public.admin_report_evidence(%L, '')$q$, :'threat_report'), 'why you need');
+do $$ begin
+  assert (select count(*) from public.admin_report_evidence(
+    (select id from public.reports where category = 'threat'), 'Reviewing urgent threat report')) = 2, 'admin sees evidence';
+  assert (select count(*) from public.evidence_access_log) = 1, 'evidence view logged';
+end $$;
+select pg_temp.expect_error(format($q$select public.moderate('warn', null, %L)$q$, :'ria'), 'moderate an admin');
+do $$ begin
+  assert (select priority from public.admin_reports('open') limit 1) = 'urgent', 'urgent reports first';
+  assert (select reported_name from public.admin_reports('open') where category = 'threat') = 'Sam', 'names shown to admin';
+  assert (select evidence_count from public.admin_reports('open') where category = 'threat') = 2, 'evidence counted';
+  assert (select reports_against from public.admin_person('cccccccc-cccc-cccc-cccc-cccccccccccc')) = 1, 'person summary';
+end $$;
+select public.moderate('suspend', :'threat_report', null, 'Credible threat; suspended pending review', 'Your account is suspended while we review a report.');
+reset role;
+
+-- Suspended: Sam can't message, react, request, list or edit, and is hidden.
+select pg_temp.act_as(:'sam');
+set role authenticated;
+select pg_temp.expect_error(
+  format($q$insert into public.messages (conversation_id, sender_id, body) values (%L, auth.uid(), 'still here')$q$, :'safety_conv'),
+  'suspended');
+select pg_temp.expect_error(
+  format($q$insert into public.message_reactions (message_id, emoji) select id, '👍' from public.messages where conversation_id = %L limit 1$q$, :'safety_conv'),
+  'suspended');
+select pg_temp.expect_error(
+  $q$select public.send_partner_request((select id from public.feed_entries where first_name = 'Ann'))$q$,
+  'suspended');
+select pg_temp.expect_error($q$update public.profiles set bio = 'changed' where id = auth.uid()$q$, 'suspended');
+select pg_temp.expect_error($q$update public.entries set status = 'looking' where user_id = auth.uid()$q$, 'suspended');
+do $$ begin
+  assert (select status from public.account_status where user_id = auth.uid()) = 'suspended', 'Sam sees his status';
+  assert (select status from public.entries where user_id = auth.uid()) = 'paused', 'listing paused';
+end $$;
+reset role;
+select pg_temp.act_as(:'uma');
+set role authenticated;
+do $$ begin
+  assert (select count(*) from public.athlete_profiles where first_name = 'Sam') = 0, 'suspended person hidden';
+  assert (select count(*) from public.account_status) = 0, 'cannot see others'' status';
+end $$;
+reset role;
+do $$ begin
+  assert (select status from public.reports where message_id = (select id from public.messages where body = 'I know where you live')) = 'actioned', 'report closed';
+  assert (select count(*) from public.moderation_actions where action = 'suspend') = 1, 'decision logged';
+end $$;
+
+-- Reinstated: Sam can message again. Then banned, deletes his account, and
+-- can't come back with the same email. The report and evidence stay.
+select pg_temp.act_as(:'ria');
+set role authenticated;
+select public.moderate('reinstate', null, :'sam', 'Appeal upheld');
+reset role;
+select pg_temp.act_as(:'sam');
+set role authenticated;
+insert into public.messages (conversation_id, sender_id, body) values (:'safety_conv', auth.uid(), 'Sorry');
+reset role;
+select pg_temp.act_as(:'ria');
+set role authenticated;
+select public.moderate('ban', :'threat_report', null, 'Repeat threats');
+reset role;
+delete from auth.users where id = :'sam';
+insert into auth.users (id, email) values ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', ' sam@example.com');
+select pg_temp.act_as('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee');
+set role authenticated;
+select pg_temp.expect_error(
+  $q$insert into public.profiles (id, first_name, date_of_birth) values (auth.uid(), 'Sam', '1993-03-03')$q$,
+  'account has been closed');
+reset role;
+do $$ begin
+  assert (select reported_id is null from public.reports where category = 'threat'), 'report kept after deletion';
+  assert (select count(*) from public.report_evidence) = 2, 'evidence kept after deletion';
+end $$;
+
+-- Clean-up: closed reports older than 12 months go, with their evidence.
+update public.reports set closed_at = now() - interval '13 months' where category = 'threat';
+do $$ begin
+  assert public.purge_closed_reports() = 1, 'old closed report purged';
+  assert (select count(*) from public.report_evidence) = 0, 'its evidence went too';
+end $$;

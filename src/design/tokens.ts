@@ -38,6 +38,66 @@ export const colors = {
 export type ColorToken = keyof typeof colors;
 
 /**
+ * Colour themes a race organiser can choose for their athletes. Each one
+ * replaces some of the colours above; anything it leaves out keeps the value
+ * in `colors`. "race-night" is today's look and is used when no theme is set.
+ * Set per organiser in `organisers.theme` as {"preset": "<name>"}. Every theme
+ * must pass the same contrast pairs (tested in tokens.test.ts).
+ */
+export const themes = {
+  "race-night": {
+    label: "Race Night",
+    description: "Black and gold. The standard look.",
+    scheme: "dark",
+    colors: {},
+  },
+  monochrome: {
+    label: "Monochrome",
+    description: "Black and white only. White takes the place of gold.",
+    scheme: "dark",
+    colors: {
+      panel: "#0f0f0f",
+      accent: "#ffffff",
+      "accent-ink": "#000000",
+    },
+  },
+  daylight: {
+    label: "Daylight",
+    description: "White pages, black text and a deep gold. Easier to read in bright sun.",
+    scheme: "light",
+    colors: {
+      bg: "#ffffff",
+      panel: "#f4f4f2",
+      soft: "#e9e9e6",
+      edge: "#d0d0cc",
+      line: "#767676",
+      muted: "#5c5c5c",
+      hint: "#6b6b6b",
+      fg: "#000000",
+      // Bright gold is too faint on white (2.6:1), so Daylight uses a deep gold with white text on it.
+      accent: "#7a5d0f",
+      "accent-ink": "#ffffff",
+      ok: "#2e7d3a",
+      danger: "#c4262e",
+    },
+  },
+} as const satisfies Record<string, { label: string; description: string; scheme: "dark" | "light"; colors: Partial<Record<ColorToken, string>> }>;
+
+export type ThemeName = keyof typeof themes;
+export const defaultTheme: ThemeName = "race-night";
+
+/** The full colour list for one theme. */
+export function themeColors(name: ThemeName): Record<ColorToken, string> {
+  return { ...colors, ...themes[name].colors };
+}
+
+/** Reads an organiser's saved theme ({"preset": "daylight"}); anything unknown gives the default. */
+export function themeFromSetting(setting: unknown): ThemeName {
+  const preset = setting && typeof setting === "object" ? (setting as { preset?: unknown }).preset : setting;
+  return typeof preset === "string" && Object.hasOwn(themes, preset) ? (preset as ThemeName) : defaultTheme;
+}
+
+/**
  * Colour pairs the app uses for text or controls, with the WCAG 2.2 contrast
  * each must reach: 4.5 for body text, 3 for large text (24px, or 18.7px bold)
  * and for control edges, icons and focus rings. Tested in tokens.test.ts.

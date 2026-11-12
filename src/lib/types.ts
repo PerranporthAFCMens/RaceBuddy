@@ -12,7 +12,7 @@ export type EventRow = {
   ends_on: string;
   ticket_url: string | null;
   name_change_cutoff: string | null;
-  organiser: { name: string; website_url: string | null } | null;
+  organiser: { name: string; website_url: string | null; theme?: unknown } | null;
 };
 
 export type Category = {
@@ -28,6 +28,10 @@ export type Category = {
 };
 
 export type Profile = {
+  /** Added by migration 20261101230000_strava_link; optional until it has run. */
+  strava_url?: string | null;
+  /** Added by migration 20261104180000_results_link; optional until it has run. */
+  results_url?: string | null;
   id: string;
   first_name: string;
   date_of_birth: string;
@@ -39,6 +43,9 @@ export type Profile = {
   travel_miles: number | null;
   five_k_seconds: number | null;
   best_race_time: string | null;
+  /** Added by migration 20261112120000_safety. Null until the person accepts the Terms. */
+  terms_version?: string | null;
+  terms_accepted_at?: string | null;
 };
 
 export type Entry = {
@@ -96,6 +103,10 @@ export type FeedEntry = {
 };
 
 export type AthleteProfile = {
+  /** Added by migration 20261101230000_strava_link; optional until it has run. */
+  strava_url?: string | null;
+  /** Added by migration 20261104180000_results_link; optional until it has run. */
+  results_url?: string | null;
   id: string;
   first_name: string;
   age: number;
@@ -128,6 +139,8 @@ export type Message = {
   sender_id: string;
   body: string;
   created_at: string;
+  /** The message this one answers, if any (added 2026-11-04; may be missing before that migration runs). */
+  reply_to_id?: string | null;
 };
 
 export type Lockin = {

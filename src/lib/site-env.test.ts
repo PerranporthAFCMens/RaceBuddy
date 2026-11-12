@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { siteEnv } from "./site-env.ts";
+import { siteEnv, siteUrl } from "./site-env.ts";
 
 function withEnv(vars: Record<string, string | undefined>, fn: () => void) {
-  const saved = { NEXT_PUBLIC_SITE_ENV: process.env.NEXT_PUBLIC_SITE_ENV, VERCEL_ENV: process.env.VERCEL_ENV };
+  const saved = Object.fromEntries(Object.keys(vars).map((k) => [k, process.env[k]]));
   for (const [k, v] of Object.entries(vars)) {
     if (v === undefined) delete process.env[k];
     else process.env[k] = v;
@@ -30,4 +30,12 @@ test("a Vercel production build with no setting counts as live", () => {
 test("anything else is local, and junk values are ignored", () => {
   withEnv({ NEXT_PUBLIC_SITE_ENV: undefined, VERCEL_ENV: undefined }, () => assert.equal(siteEnv(), "local"));
   withEnv({ NEXT_PUBLIC_SITE_ENV: "staging", VERCEL_ENV: "preview" }, () => assert.equal(siteEnv(), "local"));
+});
+
+test("site address comes from NEXT_PUBLIC_SITE_URL, without a trailing slash", () => {
+  withEnv({ NEXT_PUBLIC_SITE_URL: "https://example.app/", VERCEL_PROJECT_PRODUCTION_URL: "x.vercel.app" }, () =>
+    assert.equal(siteUrl(), "https://example.app"),
+  );
+  withEnv({ NEXT_PUBLIC_SITE_URL: undefined, VERCEL_PROJECT_PRODUCTION_URL: "x.vercel.app" }, () => assert.equal(siteUrl(), "https://x.vercel.app"));
+  withEnv({ NEXT_PUBLIC_SITE_URL: "", VERCEL_PROJECT_PRODUCTION_URL: undefined }, () => assert.equal(siteUrl("http://localhost:3000/"), "http://localhost:3000"));
 });

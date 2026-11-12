@@ -1,11 +1,16 @@
 "use server";
+import { brand } from "@/design/brand";
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { TERMS_VERSION } from "@/lib/legal";
+import { isSuspendedError, SUSPENDED_TEXT } from "@/lib/safety";
 import { getMyEntries, requireUser } from "@/lib/data";
-import { ageOn, parseRaceTime } from "@/lib/format";
+import { ageOn, durationFromParts, formatDuration } from "@/lib/format";
 import { isSituation } from "@/lib/matching";
+import { normaliseResultsUrl } from "@/lib/results-link";
+import { normaliseStravaUrl } from "@/lib/strava";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/lib/types";
@@ -28,23 +33,41 @@ const profileSchema = z.object({
     .transform((v) => (v ? Number(v) : null))
     .refine((v) => v === null || (Number.isInteger(v) && v >= 0 && v <= 1000), "Travel distance should be 0–1000 miles."),
   gym: optionalText(80),
-  five_k: z.string().trim(),
-  best_race_time: optionalText(60),
+  five_k_m: z.string().optional(),
+  five_k_s: z.string().optional(),
+  best_race_h: z.string().optional(),
+  best_race_m: z.string().optional(),
+  best_race_s: z.string().optional(),
   bio: optionalText(500),
+  strava_url: z.string().max(200, "That Strava link is too long.").optional(),
+  results_url: z.string().max(300, "That results link is too long.").optional(),
 });
 
 export async function saveProfile(_: ActionState, formData: FormData): Promise<ActionState> {
   const user = await requireUser();
   const parsed = profileSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
-  const { five_k, ...fields } = parsed.data;
+  const { five_k_m, five_k_s, best_race_h, best_race_m, best_race_s, strava_url, results_url, ...fields } = parsed.data;
 
   if (ageOn(fields.date_of_birth) < 18) {
-    return { error: "Race Buddy is for adults only (18+). Sorry!" };
+    return { error: `${brand.name} is for adults only (18+). Sorry!` };
   }
-  const fiveK = parseRaceTime(five_k);
+  const fiveK = durationFromParts({ m: five_k_m, s: five_k_s });
   if (Number.isNaN(fiveK) || (fiveK !== null && (fiveK < 600 || fiveK > 3600))) {
-    return { error: "Enter your 5km time as minutes:seconds, for example 22:40." };
+    return { error: "Check your 5km time: pick the minutes (10 to 60) and seconds." };
+  }
+  const bestRace = durationFromParts({ h: best_race_h, m: best_race_m, s: best_race_s });
+  if (Number.isNaN(bestRace) || bestRace === 0 || (bestRace !== null && bestRace > 10 * 3600)) {
+    return { error: "Check your previous race time: pick the hours, minutes and seconds." };
+  }
+
+  const strava = normaliseStravaUrl(strava_url);
+  if (strava === undefined) {
+    return { error: "That isn't a Strava profile link. It should look like strava.com/athletes/12345." };
+  }
+  const results = normaliseResultsUrl(results_url);
+  if (results === undefined) {
+    return { error: "That results link isn't from a site we know. Use a DB Max or HYROX results page." };
   }
 
   const supabase = await createClient();
@@ -61,13 +84,23 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
   }
 
   const { data: existing } = await supabase.from("profiles").select("photo_path").eq("id", user.id).maybeSingle();
+  // New people agreed to the Terms when they signed up; record which version.
   const { error } = await supabase.from("profiles").upsert({
     id: user.id,
     ...fields,
     five_k_seconds: fiveK,
+    best_race_time: bestRace === null ? null : formatDuration(bestRace),
+    strava_url: strava,
+    results_url: results,
     ...(photo_path ? { photo_path } : {}),
+    ...(existing ? {} : { terms_version: TERMS_VERSION }),
   });
-  if (error) return { error: error.message.includes("adults only") ? "Race Buddy is for adults only (18+)." : "Couldn't save your profile. Please try again." };
+  if (error) {
+    if (error.message.includes("adults only")) return { error: `${brand.name} is for adults only (18+).` };
+    if (error.message.includes("date of birth can't be changed")) return { error: "Your date of birth can't be changed here. Contact us if it's wrong." };
+    if (isSuspendedError(error.message)) return { error: SUSPENDED_TEXT };
+    return { error: "Couldn't save your profile. Please try again." };
+  }
 
   if (photo_path && existing?.photo_path) {
     await supabase.storage.from("avatars").remove([existing.photo_path]);
@@ -91,4 +124,12 @@ export async function deleteAccount(formData: FormData) {
   await createAdminClient().auth.admin.deleteUser(user.id);
   await supabase.auth.signOut();
   redirect("/?deleted=1");
+}
+
+/** Existing members agree to the current Terms of Use (banner on every screen). */
+export async function acceptTerms() {
+  const user = await requireUser();
+  const supabase = await createClient();
+  await supabase.from("profiles").update({ terms_version: TERMS_VERSION }).eq("id", user.id);
+  revalidatePath("/", "layout");
 }

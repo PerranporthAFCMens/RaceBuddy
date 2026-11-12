@@ -1,6 +1,5 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireProfile } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
@@ -63,31 +62,4 @@ export async function cancelLockin(formData: FormData) {
   const supabase = await createClient();
   await supabase.rpc("cancel_lockin", { p_lockin: lockin });
   revalidatePath(`/chats/${conv}`);
-}
-
-export async function blockUser(formData: FormData) {
-  const { user } = await requireProfile();
-  const other = z.uuid().parse(formData.get("user_id"));
-  const supabase = await createClient();
-  await supabase.from("blocks").upsert({ blocker_id: user.id, blocked_id: other }, { onConflict: "blocker_id,blocked_id" });
-  revalidatePath("/", "layout");
-  redirect("/chats");
-}
-
-export async function reportUser(_: ActionState, formData: FormData): Promise<ActionState> {
-  const { user } = await requireProfile();
-  const other = z.uuid().safeParse(formData.get("user_id"));
-  const conv = z.uuid().safeParse(formData.get("conversation_id"));
-  const reason = z.string().trim().min(5, "Tell us briefly what happened.").max(1000).safeParse(formData.get("reason"));
-  if (!other.success) return { error: "Choose who to report." };
-  if (!reason.success) return { error: reason.error.issues[0]?.message };
-  const supabase = await createClient();
-  const { error } = await supabase.from("reports").insert({
-    reporter_id: user.id,
-    reported_id: other.data,
-    conversation_id: conv.success ? conv.data : null,
-    reason: reason.data,
-  });
-  if (error) return { error: "Couldn't send your report. Please try again." };
-  return { ok: true, message: "Thanks. The Race Buddy team will review this." };
 }

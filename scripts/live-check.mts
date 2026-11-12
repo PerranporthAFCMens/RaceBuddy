@@ -3,6 +3,7 @@
 //
 //   npm run test:live
 //
+// Also runs from .github/workflows/live-check.yml (after each release and daily).
 // Needs NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY and
 // SUPABASE_SERVICE_ROLE_KEY. Test users are created with the admin API, so no
 // emails are sent.
@@ -35,7 +36,9 @@ function check(name: string, ok: boolean, detail?: unknown) {
     console.log(`  ok   ${name}`);
   } else {
     failures.push(name);
-    console.log(`  FAIL ${name}${detail === undefined ? "" : ` -> ${JSON.stringify(detail)}`}`);
+    // GitHub Actions logs are public for this repo: never print row data there.
+    const show = detail !== undefined && !process.env.CI;
+    console.log(`  FAIL ${name}${show ? ` -> ${JSON.stringify(detail)}` : ""}`);
   }
 }
 
@@ -349,24 +352,118 @@ async function main() {
   check("an athlete can report someone", !reportErr, reportErr?.message);
   const { data: caraReports } = await cara.client.from("reports").select("id");
   check("the reported athlete cannot see the report", caraReports?.length === 0, caraReports);
+  const { error: unblockErr } = await dan.client.from("blocks").delete().eq("blocker_id", dan.id).eq("blocked_id", cara.id);
+  const { data: danBlocks } = await dan.client.rpc("my_blocks");
+  const { data: danSeesCaraAgain } = await dan.client.from("athlete_profiles").select("id").eq("id", cara.id);
+  check(
+    "an athlete can unblock someone",
+    !unblockErr && (danBlocks as unknown[] | null)?.length === 0 && danSeesCaraAgain?.length === 1,
+    unblockErr?.message,
+  );
+
+  // Safety and moderation ------------------------------------------------------
+  console.log("Safety and moderation");
+  await expectError(
+    "date of birth can't be changed after sign-up",
+    tom.client.from("profiles").update({ date_of_birth: "1991-05-01" }).eq("id", tom.id),
+    "can't be changed",
+  );
+  const tomMsg = await one(
+    jess.client.from("messages").select("id").eq("conversation_id", convId).eq("sender_id", tom.id).limit(1).single(),
+    "tom message",
+  );
+  await expectError(
+    "nobody can report a chat they are not in",
+    dan.client.from("reports").insert({ reporter_id: dan.id, reported_id: tom.id, conversation_id: convId, reason: `live check ${run}` }),
+    "only report a chat you are in",
+  );
+  const { error: msgReportErr } = await jess.client
+    .from("reports")
+    .insert({ reporter_id: jess.id, message_id: tomMsg.id, category: "harassment", reason: `live check ${run}` });
+  check("an athlete can report a single message", !msgReportErr, msgReportErr?.message);
+  const msgReport = await one(
+    jess.client.from("reports").select("id, priority, reported_id").eq("message_id", tomMsg.id).single(),
+    "message report",
+  );
+  check("harassment reports are high priority", msgReport.priority === "high" && msgReport.reported_id === tom.id, msgReport);
+  await expectError("athletes cannot read report evidence", jess.client.from("report_evidence").select("id"), "permission denied");
+  await expectError(
+    "athletes cannot open evidence through the admin function",
+    jess.client.rpc("admin_report_evidence", { p_report: msgReport.id, p_reason: "curious about it" }),
+    "Admins only",
+  );
+  await expectError(
+    "athletes cannot moderate",
+    jess.client.rpc("moderate", { p_action: "suspend", p_report: msgReport.id }),
+    "Admins only",
+  );
+
+  const mod = await makeUser("mod");
+  const { error: makeModErr } = await admin.from("admins").insert({ user_id: mod.id });
+  if (makeModErr) throw new Error(`make test admin: ${makeModErr.message}`);
+  await expectError(
+    "admins must give a reason to open evidence",
+    mod.client.rpc("admin_report_evidence", { p_report: msgReport.id, p_reason: "" }),
+    "Say briefly",
+  );
+  const { data: evidence, error: evErr } = await mod.client.rpc("admin_report_evidence", {
+    p_report: msgReport.id,
+    p_reason: `live check ${run}`,
+  });
+  const ev = (evidence ?? []) as { is_reported: boolean }[];
+  check("admins see the reported message as evidence", !evErr && ev.some((m) => m.is_reported), evErr?.message ?? ev.length);
+  const { data: viewLog } = await mod.client.from("evidence_access_log").select("id").eq("report_id", msgReport.id);
+  check("every look at evidence is logged", viewLog?.length === 1, viewLog?.length);
+
+  const { error: suspendErr } = await mod.client.rpc("moderate", { p_action: "suspend", p_report: msgReport.id, p_note: `live check ${run}` });
+  check("an admin can suspend the reported athlete", !suspendErr, suspendErr?.message);
+  await expectError(
+    "a suspended athlete cannot send messages",
+    tom.client.from("messages").insert({ conversation_id: convId, sender_id: tom.id, body: "still here" }),
+    "suspended",
+  );
+  const { data: tomHidden } = await jess.client.from("athlete_profiles").select("id").eq("id", tom.id);
+  const { data: tomStillReads } = await tom.client.from("messages").select("id").eq("conversation_id", convId);
+  check(
+    "a suspended athlete is hidden but can still read their chats",
+    tomHidden?.length === 0 && (tomStillReads?.length ?? 0) > 0,
+    { hidden: tomHidden?.length, reads: tomStillReads?.length },
+  );
+  const { error: reinstateErr } = await mod.client.rpc("moderate", { p_action: "reinstate", p_report: msgReport.id, p_note: `live check ${run}` });
+  const { error: backErr } = await tom.client.from("messages").insert({ conversation_id: convId, sender_id: tom.id, body: "Sorry about that" });
+  check("a reinstated athlete can message again", !reinstateErr && !backErr, reinstateErr?.message ?? backErr?.message);
+  const { error: resolveErr } = await mod.client.rpc("moderate", { p_action: "resolve", p_report: msgReport.id, p_note: `live check ${run}` });
+  const closed = await one(mod.client.from("reports").select("status, closed_at").eq("id", msgReport.id).single(), "closed report");
+  check("an admin can close a report", !resolveErr && closed.status === "actioned" && Boolean(closed.closed_at), resolveErr?.message ?? closed);
 }
 
 async function cleanUp() {
   console.log("Cleaning up");
   if (photoPaths.length) await admin.storage.from("avatars").remove(photoPaths);
   if (conversationIds.size) await admin.from("conversations").delete().in("id", [...conversationIds]);
+  // Reports, evidence and moderation records are kept when an account is
+  // deleted, so remove this run's ones first (every one mentions the run).
+  const { data: ownReports } = await admin.from("reports").select("id").like("reason", `%${run}%`);
+  const reportIds = (ownReports ?? []).map((r) => r.id as string);
+  if (reportIds.length) {
+    await admin.from("evidence_access_log").delete().in("report_id", reportIds);
+    await admin.from("moderation_actions").delete().in("report_id", reportIds);
+    await admin.from("reports").delete().in("id", reportIds);
+  }
+  if (userIds.length) await admin.from("moderation_actions").delete().in("user_id", userIds);
   // Deleting the users removes their profiles, listings, requests, chats
-  // membership, messages, lock-ins, blocks and reports.
+  // membership, messages, lock-ins, blocks, admin role and account status.
   for (const id of userIds) {
     const { error } = await admin.auth.admin.deleteUser(id);
-    if (error) console.log(`  could not delete user ${id}: ${error.message}`);
+    if (error) console.log(`  could not delete a test user${process.env.CI ? "" : ` ${id}`}: ${error.message}`);
   }
   const { count: left } = await admin.from("profiles").select("id", { count: "exact", head: true }).in("id", userIds.length ? userIds : [crypto.randomUUID()]);
   const { count: convLeft } = await admin
     .from("conversations")
     .select("id", { count: "exact", head: true })
     .in("id", conversationIds.size ? [...conversationIds] : [crypto.randomUUID()]);
-  console.log(`  leftover test profiles: ${left ?? "?"}, leftover chats: ${convLeft ?? "?"}`);
+  const { count: reportsLeft } = await admin.from("reports").select("id", { count: "exact", head: true }).like("reason", `%${run}%`);
+  console.log(`  leftover test profiles: ${left ?? "?"}, leftover chats: ${convLeft ?? "?"}, leftover reports: ${reportsLeft ?? "?"}`);
 }
 
 let crashed: unknown = null;

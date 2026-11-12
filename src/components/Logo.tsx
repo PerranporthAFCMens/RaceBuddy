@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { brand } from "@/design/brand";
 
-/** Placeholder wordmark while the product name is under review. Text comes from src/design/brand.ts. */
+/** Wordmark. Text comes from src/design/brand.ts, so it follows a rename. */
 export function Logo({ size = "sm", href = "/" }: { size?: "sm" | "lg"; href?: string | null }) {
   const mark = (
     <span

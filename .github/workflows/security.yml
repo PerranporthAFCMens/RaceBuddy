@@ -1,0 +1,56 @@
+name: Security
+
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+  schedule:
+    # Weekly, so a newly published problem in a package is caught even with no PRs.
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    # Known-vulnerable packages, leaked secrets, and the code rules in scripts/security-check.mts.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Packages the app ships have no known problems (moderate or worse)
+        run: npm audit --omit=dev --audit-level=moderate
+      - name: Build tools have no known high or critical problems
+        run: npm audit --audit-level=high
+      - name: Code security rules
+        run: npm run security:check
+      - name: No secrets anywhere in the history
+        env:
+          VERSION: 8.28.0
+          SHA256: a65b5253807a68ac0cafa4414031fd740aeb55f54fb7e55f386acb52e6a840eb
+        run: |
+          curl -sSfL -o gitleaks.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz"
+          echo "${SHA256}  gitleaks.tgz" | sha256sum -c -
+          tar -xzf gitleaks.tgz gitleaks
+          ./gitleaks git --no-banner --redact --verbose .
+
+  codeql:
+    # GitHub's code scanner: injection, unsafe redirects, workflow mistakes and more.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript, actions
+          build-mode: none
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v3

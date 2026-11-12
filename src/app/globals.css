@@ -46,6 +46,15 @@ body {
 @utility input {
   @apply block min-h-11 w-full border border-line bg-panel px-3 py-2 text-base text-fg placeholder:text-hint focus:border-accent focus:outline-none aria-invalid:border-danger;
 }
+/* iPhone Safari draws date boxes at a fixed native width that spills out of
+   the column. Let them fit the column like every other box. */
+input[type="date"] {
+  appearance: none;
+  min-width: 0;
+}
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
 
 /* Headings */
 @utility heading {

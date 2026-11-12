@@ -1,4 +1,5 @@
 "use client";
+import { brand } from "@/design/brand";
 import { useActionState } from "react";
 import { FormMessage } from "@/components/FormMessage";
 import { ActionForm } from "@/components/ActionForm";
@@ -42,7 +43,7 @@ export function LockinPanel({ conversationId, view }: { conversationId: string; 
           <p className="text-xs text-muted">
             Next: the ticket holder completes the name change with the organiser
             {view.cutoff ? ` before ${new Date(`${view.cutoff}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}.
-            Paying the fee in Race Buddy is coming soon.
+            Paying the fee in {brand.name} is coming soon.
             {view.ticketUrl && (
               <>
                 {" "}
@@ -126,39 +127,5 @@ export function LockinPanel({ conversationId, view }: { conversationId: string; 
         <SubmitButton pendingText="Sending…">Lock in partner</SubmitButton>
       </ActionForm>
     </details>
-  );
-}
-
-export function ReportForm({
-  conversationId,
-  people,
-  action,
-}: {
-  conversationId: string;
-  people: { id: string; name: string }[];
-  action: (state: { ok?: boolean; error?: string; message?: string } | undefined, fd: FormData) => Promise<{ ok?: boolean; error?: string; message?: string } | undefined>;
-}) {
-  const [state, formAction] = useActionState(action, undefined);
-  if (state?.ok) return <FormMessage state={state} />;
-  return (
-    <ActionForm action={formAction} className="space-y-3">
-      <input type="hidden" name="conversation_id" value={conversationId} />
-      {people.length === 1 ? (
-        <input type="hidden" name="user_id" value={people[0]!.id} />
-      ) : (
-        <select className="input" name="user_id">
-          {people.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-      )}
-      <textarea className="input min-h-20" name="reason" placeholder="What happened?" maxLength={1000} required />
-      <FormMessage state={state} />
-      <SubmitButton className="btn-line w-full" pendingText="Sending…">
-        Send report
-      </SubmitButton>
-    </ActionForm>
   );
 }
