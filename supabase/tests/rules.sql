@@ -562,6 +562,9 @@ select pg_temp.expect_error(
 select pg_temp.expect_error(
   format($q$select public.moderate('ban', null, %L)$q$, :'tom'), 'Admins only');
 select pg_temp.expect_error($q$update public.reports set status = 'dismissed'$q$, 'permission denied');
+select pg_temp.expect_error($q$select * from public.admin_reports('all')$q$, 'Admins only');
+select pg_temp.expect_error(format($q$select * from public.admin_person(%L)$q$, :'sam'), 'Admins only');
+select pg_temp.expect_error($q$select public.purge_closed_reports()$q$, 'permission denied');
 do $$ begin
   assert (select count(*) from public.reports) = 1, 'sees only her own report';
   assert (select count(*) from public.moderation_actions) = 0, 'no moderation log';
@@ -589,6 +592,12 @@ do $$ begin
   assert (select count(*) from public.evidence_access_log) = 1, 'evidence view logged';
 end $$;
 select pg_temp.expect_error(format($q$select public.moderate('warn', null, %L)$q$, :'ria'), 'moderate an admin');
+do $$ begin
+  assert (select priority from public.admin_reports('open') limit 1) = 'urgent', 'urgent reports first';
+  assert (select reported_name from public.admin_reports('open') where category = 'threat') = 'Sam', 'names shown to admin';
+  assert (select evidence_count from public.admin_reports('open') where category = 'threat') = 2, 'evidence counted';
+  assert (select reports_against from public.admin_person('cccccccc-cccc-cccc-cccc-cccccccccccc')) = 1, 'person summary';
+end $$;
 select public.moderate('suspend', :'threat_report', null, 'Credible threat; suspended pending review', 'Your account is suspended while we review a report.');
 reset role;
 
@@ -648,4 +657,11 @@ reset role;
 do $$ begin
   assert (select reported_id is null from public.reports where category = 'threat'), 'report kept after deletion';
   assert (select count(*) from public.report_evidence) = 2, 'evidence kept after deletion';
+end $$;
+
+-- Clean-up: closed reports older than 12 months go, with their evidence.
+update public.reports set closed_at = now() - interval '13 months' where category = 'threat';
+do $$ begin
+  assert public.purge_closed_reports() = 1, 'old closed report purged';
+  assert (select count(*) from public.report_evidence) = 0, 'its evidence went too';
 end $$;
