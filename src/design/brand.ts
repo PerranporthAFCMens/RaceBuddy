@@ -15,5 +15,7 @@ export const brand = {
   /** Wordmark text: the name in capitals with the last letter set in gold. */
   wordmark: { lead: name.toUpperCase().slice(0, -1), accent: name.toUpperCase().slice(-1) },
   tagline: "The partner finder for fitness races",
+  /** The public web domain (without www). Used for the contact email. */
+  domain: "ygig.co.uk",
   description: "Lost your race partner? Find a new one. The partner finder for doubles and relay fitness races.",
 } as const;
