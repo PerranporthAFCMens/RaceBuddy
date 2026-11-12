@@ -34,6 +34,8 @@ begin
     ('messages', 'SELECT'), ('messages', 'INSERT'),
     ('message_reactions', 'SELECT'), ('message_reactions', 'INSERT'), ('message_reactions', 'DELETE'),
     ('partner_requests', 'SELECT'), ('lockins', 'SELECT'), ('match_alerts', 'SELECT'),
+    -- Safety: own status for everyone; the logs only return rows to admins.
+    ('account_status', 'SELECT'), ('evidence_access_log', 'SELECT'), ('moderation_actions', 'SELECT'),
     ('athlete_profiles', 'SELECT'), ('feed_entries', 'SELECT')
   ), actual as (
     select table_name::text t, privilege_type::text p from information_schema.role_table_grants
@@ -73,7 +75,9 @@ begin
     ('send_partner_request'), ('withdraw_partner_request'), ('respond_to_partner_request'),
     ('propose_lockin'), ('respond_to_lockin'), ('cancel_lockin'), ('my_matches'),
     -- Used inside row rules and views, which run them as the signed-in person.
-    ('is_blocked_between'), ('is_member'), ('chat_has_block')
+    ('is_blocked_between'), ('is_member'), ('chat_has_block'), ('is_admin'),
+    -- Admin only: both refuse anyone who isn't in the admins table.
+    ('admin_report_evidence'), ('moderate')
   ), actual as (
     select p.proname::text f from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.prorettype <> 'trigger'::regtype
