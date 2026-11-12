@@ -23,3 +23,8 @@ possible. Main changes from the first version (PR #30):
 TERMS_VERSION moved to 2026-11-12, so everyone is asked to agree again.
 Until dev is released, someone using both sites is asked on each (they share
 one database and the live site still expects 2026-11).
+
+Update (same day): Adam chose the operator name. `OPERATOR = "Adam Turner"`,
+so the Terms and a new "Who we are" section on the Privacy page say
+"Adam Turner, trading as YGIG" and name him as data controller. No address.
+TERMS_VERSION is unchanged: this version has not reached the live site yet.

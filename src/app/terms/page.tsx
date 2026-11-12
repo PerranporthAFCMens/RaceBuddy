@@ -28,7 +28,7 @@ export default function Terms() {
       <div className="space-y-6 text-sm text-muted">
         <Part title="These terms">
           <p>
-            These terms are the agreement between you and {OPERATOR ? `${OPERATOR} (${n})` : n} (&quot;we&quot;, &quot;us&quot;).
+            These terms are the agreement between you and {OPERATOR ? `${OPERATOR}, trading as ${n}` : n} (&quot;we&quot;, &quot;us&quot;).
             By creating an account you agree to them. If you don&apos;t agree, don&apos;t use {n}.
           </p>
         </Part>

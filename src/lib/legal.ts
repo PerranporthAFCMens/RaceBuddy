@@ -7,10 +7,10 @@ import { brand } from "@/design/brand";
 export const TERMS_VERSION = "2026-11-12";
 
 /**
- * Who runs the service, as named in the Terms (a person or company).
+ * Who runs the service: the Terms and Privacy pages say "<OPERATOR>, trading as <product name>".
  * Set by the owner. null = the Terms just say the product name.
  */
-export const OPERATOR: string | null = null;
+export const OPERATOR: string | null = "Adam Turner";
 
 /** Most we will pay for any claim under the Terms (free service), in pounds. */
 export const LIABILITY_CAP_GBP = 50;

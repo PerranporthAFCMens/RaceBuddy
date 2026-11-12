@@ -2,6 +2,7 @@ import { brand } from "@/design/brand";
 import Link from "next/link";
 import { ContactLine } from "@/components/ContactLine";
 import { Logo } from "@/components/Logo";
+import { OPERATOR } from "@/lib/legal";
 
 export const metadata = { title: "Privacy" };
 
@@ -14,6 +15,13 @@ export default function Privacy() {
       <Logo />
       <h1 className="heading mt-8 mb-6">Privacy</h1>
       <div className="space-y-6 text-sm text-muted">
+        <section className="space-y-2">
+          <h2 className="font-bold uppercase text-fg">Who we are</h2>
+          <p>
+            We are {OPERATOR ? `${OPERATOR}, trading as ${n}` : n}. We decide how your data is used (we are the
+            &quot;controller&quot;). To contact us, <ContactLine />.
+          </p>
+        </section>
         <section className="space-y-2">
           <h2 className="font-bold uppercase text-fg">What we collect</h2>
           <ul className="list-disc space-y-1 pl-5">
