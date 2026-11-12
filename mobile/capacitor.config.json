@@ -1,0 +1,11 @@
+{
+  "appId": "uk.co.ygig.app",
+  "appName": "YGIG",
+  "webDir": "www",
+  "server": {
+    "url": "https://www.ygig.co.uk/browse",
+    "allowNavigation": ["www.ygig.co.uk", "ygig.co.uk", "*.supabase.co"]
+  },
+  "ios": { "contentInset": "never" },
+  "android": { "allowMixedContent": false }
+}
