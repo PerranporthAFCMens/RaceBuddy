@@ -1,0 +1,49 @@
+name: Phone app
+
+# Builds the iPhone and Android app shells (no signing) to prove they still
+# compile. Runs only when the shell changes. Free for public repos.
+on:
+  pull_request:
+    paths: ["mobile/**", ".github/workflows/mobile.yml"]
+  push:
+    branches: [dev]
+    paths: ["mobile/**", ".github/workflows/mobile.yml"]
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npx cap sync ios
+      - name: Build for the iPhone simulator
+        run: >
+          xcodebuild -project ios/App/App.xcodeproj -scheme App
+          -sdk iphonesimulator -configuration Debug
+          -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO build
+
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npx cap sync android
+      - name: Build a debug Android app
+        run: cd android && ./gradlew assembleDebug --no-daemon

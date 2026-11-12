@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">YGIG</string>
+    <string name="title_activity_main">YGIG</string>
+    <string name="package_name">uk.co.ygig.app</string>
+    <string name="custom_url_scheme">uk.co.ygig.app</string>
+</resources>
