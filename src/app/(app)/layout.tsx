@@ -3,17 +3,23 @@ import { BottomNav } from "@/components/BottomNav";
 import { Logo } from "@/components/Logo";
 import { themeFromSetting } from "@/design/tokens";
 import { getBadges } from "@/lib/badges";
-import { pickEvent, requireUser } from "@/lib/data";
+import { getMyProfile, pickEvent, requireUser } from "@/lib/data";
+import { TERMS_VERSION } from "@/lib/legal";
+import Link from "next/link";
+import { SubmitButton } from "@/components/SubmitButton";
+import { acceptTerms } from "./me/actions";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
   const supabase = await createClient();
-  const [badges, { event }, { data: status }] = await Promise.all([
+  const [badges, { event }, { data: status }, profile] = await Promise.all([
     getBadges(supabase, user.id),
     pickEvent(undefined),
     supabase.from("account_status").select("status, message").eq("user_id", user.id).maybeSingle(),
+    getMyProfile(),
   ]);
+  const needsTerms = Boolean(profile && profile.terms_version !== TERMS_VERSION);
   const notice = accountNotice(status as { status: string; message: string | null } | null);
   // Athletes see the colour theme their race organiser chose (organisers.theme).
   const theme = themeFromSetting(event?.organiser?.theme);
@@ -30,6 +36,15 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             <p className="font-bold uppercase text-danger">{notice.title}</p>
             <p className="mt-1">{notice.text}</p>
           </div>
+        )}
+        {needsTerms && (
+          <form action={acceptTerms} className="mb-5 space-y-3 border border-line bg-panel p-3 text-sm">
+            <p>
+              We&apos;ve added <Link href="/terms" className="underline">Terms of Use</Link> covering behaviour, reporting and
+              safety. Please read them and agree.
+            </p>
+            <SubmitButton pendingText="Saving…">I agree</SubmitButton>
+          </form>
         )}
         {children}
       </main>

@@ -138,7 +138,11 @@ export default async function ChatPage({ params }: PageProps<"/chats/[id]">) {
           <summary className="cursor-pointer text-muted">Block or report</summary>
           <div className="mt-3 space-y-4">
             <p className="text-xs text-muted">
-              To report one message, tap it and choose Report.
+              To report one message, tap it and choose Report. Meeting up? Read our{" "}
+              <Link href="/safety" className="underline">
+                safety tips
+              </Link>
+              .
             </p>
             <ReportForm conversationId={id} people={people.map((p) => ({ id: p.id, name: p.first_name }))} />
             {people.map((p) => (

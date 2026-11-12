@@ -89,7 +89,10 @@ export default async function Home() {
       </section>
 
       <footer className="px-4 pb-10 text-center text-xs text-muted">
-        {brand.name} is 18+ only. <Link href="/privacy" className="underline">Privacy</Link>
+        {brand.name} is 18+ only.{" "}
+        <Link href="/terms" className="inline-flex min-h-11 items-center px-1 underline">Terms</Link>{" "}
+        <Link href="/privacy" className="inline-flex min-h-11 items-center px-1 underline">Privacy</Link>{" "}
+        <Link href="/safety" className="inline-flex min-h-11 items-center px-1 underline">Safety tips</Link>
       </footer>
     </main>
   );

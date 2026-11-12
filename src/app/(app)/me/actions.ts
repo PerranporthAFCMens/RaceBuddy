@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { TERMS_VERSION } from "@/lib/legal";
 import { isSuspendedError, SUSPENDED_TEXT } from "@/lib/safety";
 import { getMyEntries, requireUser } from "@/lib/data";
 import { ageOn, durationFromParts, formatDuration } from "@/lib/format";
@@ -83,6 +84,7 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
   }
 
   const { data: existing } = await supabase.from("profiles").select("photo_path").eq("id", user.id).maybeSingle();
+  // New people agreed to the Terms when they signed up; record which version.
   const { error } = await supabase.from("profiles").upsert({
     id: user.id,
     ...fields,
@@ -91,6 +93,7 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
     strava_url: strava,
     results_url: results,
     ...(photo_path ? { photo_path } : {}),
+    ...(existing ? {} : { terms_version: TERMS_VERSION }),
   });
   if (error) {
     if (error.message.includes("adults only")) return { error: `${brand.name} is for adults only (18+).` };
@@ -121,4 +124,12 @@ export async function deleteAccount(formData: FormData) {
   await createAdminClient().auth.admin.deleteUser(user.id);
   await supabase.auth.signOut();
   redirect("/?deleted=1");
+}
+
+/** Existing members agree to the current Terms of Use (banner on every screen). */
+export async function acceptTerms() {
+  const user = await requireUser();
+  const supabase = await createClient();
+  await supabase.from("profiles").update({ terms_version: TERMS_VERSION }).eq("id", user.id);
+  revalidatePath("/", "layout");
 }
