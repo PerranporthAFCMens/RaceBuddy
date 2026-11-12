@@ -26,6 +26,13 @@ export function isSuspendedError(message: string | undefined): boolean {
 
 export const SUSPENDED_TEXT = "Your account is suspended, so you can't do that right now.";
 
+/** The database's wording when text includes a word from the blocked list. */
+export function isBlockedWordError(message: string | undefined): boolean {
+  return Boolean(message && /word we don't allow/i.test(message));
+}
+
+export const BLOCKED_WORD_TEXT = "That includes a word we don't allow. Please reword it and try again.";
+
 /** Where "Block" may send you afterwards. */
 export function safeBlockRedirect(value: unknown): "/chats" | "/browse" {
   return value === "/browse" ? "/browse" : "/chats";

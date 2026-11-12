@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { TERMS_VERSION } from "@/lib/legal";
-import { isSuspendedError, SUSPENDED_TEXT } from "@/lib/safety";
+import { BLOCKED_WORD_TEXT, isBlockedWordError, isSuspendedError, SUSPENDED_TEXT } from "@/lib/safety";
 import { getMyEntries, requireUser } from "@/lib/data";
 import { ageOn, durationFromParts, formatDuration } from "@/lib/format";
 import { isSituation } from "@/lib/matching";
@@ -99,6 +99,7 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
     if (error.message.includes("adults only")) return { error: `${brand.name} is for adults only (18+).` };
     if (error.message.includes("date of birth can't be changed")) return { error: "Your date of birth can't be changed here. Contact us if it's wrong." };
     if (isSuspendedError(error.message)) return { error: SUSPENDED_TEXT };
+    if (isBlockedWordError(error.message)) return { error: BLOCKED_WORD_TEXT };
     return { error: "Couldn't save your profile. Please try again." };
   }
 

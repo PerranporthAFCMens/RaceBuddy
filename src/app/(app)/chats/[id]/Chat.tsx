@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DayDivider, MessageBubble, ReplyBar, TypingLine } from "@/components/chat/ChatParts";
 import { ReportForm } from "@/components/ReportForm";
 import { findLinks, layoutMessages, seenBy, snippet, summariseReactions, timeLabel, type ReactionRow } from "@/lib/chat";
+import { BLOCKED_WORD_TEXT, isBlockedWordError } from "@/lib/safety";
 import { createClient } from "@/lib/supabase/client";
 import type { Message } from "@/lib/types";
 
@@ -203,6 +204,7 @@ export function Chat({
     if (error) {
       setMessages((prev) => prev.map((m) => (m.id === temp.id ? { ...m, status: "failed" } : m)));
       if (error.message.startsWith("Slow down")) setError(error.message);
+      else if (isBlockedWordError(error.message)) setError(BLOCKED_WORD_TEXT);
       return;
     }
     const sent = data as Message;
