@@ -4,6 +4,7 @@ import { Avatar } from "@/components/Avatar";
 import { DayDivider, MessageBubble, ReplyBar, TypingLine } from "@/components/chat/ChatParts";
 import { LoadingCards } from "@/components/LoadingCards";
 import { Logo } from "@/components/Logo";
+import { ReportForm } from "@/components/ReportForm";
 import { MatchedFlag, TicketFlag } from "@/components/TicketFlag";
 import { TimeInput } from "@/components/TimeInput";
 import { brand } from "@/design/brand";
@@ -215,6 +216,7 @@ export default async function Styleguide({ searchParams }: PageProps<"/styleguid
               reply={{ name: "You", text: "Yes! What's your 5km at the moment?" }}
               time="18:41"
               open
+              showReport
               reactions={[
                 { emoji: "🔥", count: 2, mine: true, names: "You, Jess" },
                 { emoji: "💪", count: 1, mine: false, names: "Jess" },
@@ -225,6 +227,15 @@ export default async function Styleguide({ searchParams }: PageProps<"/styleguid
             <TypingLine names={["Sam"]} />
           </div>
           <ReplyBar name="Sam" text="About 22:30. Fancy a session at the gym on Thursday?" />
+        </section>
+
+        <section aria-labelledby="sg-safety" className="space-y-4">
+          <h2 id="sg-safety" className="heading">Safety</h2>
+          <ReportForm people={[{ id: "00000000-0000-0000-0000-000000000000", name: "Sam" }]} />
+          <div role="status" className="border border-danger p-3 text-sm">
+            <p className="font-bold uppercase text-danger">Account suspended</p>
+            <p className="mt-1">You can still read your chats, but you can&apos;t message, send requests or change your listings while we review a report.</p>
+          </div>
         </section>
 
         <section aria-labelledby="sg-loading" className="space-y-4">

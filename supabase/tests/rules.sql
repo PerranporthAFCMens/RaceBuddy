@@ -205,6 +205,20 @@ do $$ begin
 end $$;
 reset role;
 
+-- Dan sees who he blocked (so he can unblock); Cara doesn't see that Dan blocked her.
+select pg_temp.act_as(:'cara');
+set role authenticated;
+do $$ begin
+  assert (select count(*) from public.my_blocks()) = 0, 'blocked person is not told';
+end $$;
+reset role;
+select pg_temp.act_as(:'dan');
+set role authenticated;
+do $$ begin
+  assert (select first_name from public.my_blocks()) = 'Cara', 'own blocked list';
+end $$;
+reset role;
+
 -- Signed-out visitors see events but no people.
 select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', 'anon', false);
 set role anon;

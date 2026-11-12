@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { isSuspendedError, SUSPENDED_TEXT } from "@/lib/safety";
 import { getMyEntries, requireUser } from "@/lib/data";
 import { ageOn, durationFromParts, formatDuration } from "@/lib/format";
 import { isSituation } from "@/lib/matching";
@@ -91,7 +92,12 @@ export async function saveProfile(_: ActionState, formData: FormData): Promise<A
     results_url: results,
     ...(photo_path ? { photo_path } : {}),
   });
-  if (error) return { error: error.message.includes("adults only") ? `${brand.name} is for adults only (18+).` : "Couldn't save your profile. Please try again." };
+  if (error) {
+    if (error.message.includes("adults only")) return { error: `${brand.name} is for adults only (18+).` };
+    if (error.message.includes("date of birth can't be changed")) return { error: "Your date of birth can't be changed here. Contact us if it's wrong." };
+    if (isSuspendedError(error.message)) return { error: SUSPENDED_TEXT };
+    return { error: "Couldn't save your profile. Please try again." };
+  }
 
   if (photo_path && existing?.photo_path) {
     await supabase.storage.from("avatars").remove([existing.photo_path]);

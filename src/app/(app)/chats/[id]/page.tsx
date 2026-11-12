@@ -6,9 +6,10 @@ import { requireProfile } from "@/lib/data";
 import type { ReactionRow } from "@/lib/chat";
 import { createClient } from "@/lib/supabase/server";
 import type { AthleteProfile, Entry, FeedEntry, Lockin, Message } from "@/lib/types";
-import { blockUser, reportUser } from "./actions";
+import { ReportForm } from "@/components/ReportForm";
+import { blockUser } from "../../safety/actions";
 import { Chat } from "./Chat";
-import { LockinPanel, ReportForm, type LockinView } from "./LockinPanel";
+import { LockinPanel, type LockinView } from "./LockinPanel";
 
 export const metadata = { title: "Chat" };
 
@@ -136,20 +137,20 @@ export default async function ChatPage({ params }: PageProps<"/chats/[id]">) {
         <details className="border-t border-edge pt-3 text-sm">
           <summary className="cursor-pointer text-muted">Block or report</summary>
           <div className="mt-3 space-y-4">
-            <ReportForm
-              conversationId={id}
-              people={people.map((p) => ({ id: p.id, name: p.first_name }))}
-              action={reportUser}
-            />
+            <p className="text-xs text-muted">
+              To report one message, tap it and choose Report.
+            </p>
+            <ReportForm conversationId={id} people={people.map((p) => ({ id: p.id, name: p.first_name }))} />
             {people.map((p) => (
               <form key={p.id} action={blockUser}>
                 <input type="hidden" name="user_id" value={p.id} />
+                <input type="hidden" name="next" value="/chats" />
                 <SubmitButton className="btn w-full border border-danger text-danger" pendingText="Blocking…">
                   Block {p.first_name}
                 </SubmitButton>
               </form>
             ))}
-            <p className="text-xs text-muted">Blocked athletes can&apos;t see you or message you, and you won&apos;t see them.</p>
+            <p className="text-xs text-muted">Blocked athletes can&apos;t see you or message you, and you won&apos;t see them. They aren&apos;t told. You can unblock from My profile.</p>
           </div>
         </details>
       )}

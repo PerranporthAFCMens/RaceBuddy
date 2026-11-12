@@ -8,10 +8,13 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
-  const [badges, { event }] = await Promise.all([
-    getBadges(await createClient(), user.id),
+  const supabase = await createClient();
+  const [badges, { event }, { data: status }] = await Promise.all([
+    getBadges(supabase, user.id),
     pickEvent(undefined),
+    supabase.from("account_status").select("status, message").eq("user_id", user.id).maybeSingle(),
   ]);
+  const notice = accountNotice(status as { status: string; message: string | null } | null);
   // Athletes see the colour theme their race organiser chose (organisers.theme).
   const theme = themeFromSetting(event?.organiser?.theme);
   return (
@@ -22,6 +25,12 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         </div>
       </header>
       <main className="mx-auto w-full max-w-xl flex-1 px-4 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom))]">
+        {notice && (
+          <div role="status" className="mb-5 border border-danger p-3 text-sm">
+            <p className="font-bold uppercase text-danger">{notice.title}</p>
+            <p className="mt-1">{notice.text}</p>
+          </div>
+        )}
         {children}
       </main>
       <Suspense fallback={null}>
@@ -29,4 +38,17 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       </Suspense>
     </div>
   );
+}
+
+/** What a warned, suspended or banned person sees at the top of every screen. */
+function accountNotice(row: { status: string; message: string | null } | null) {
+  if (!row || row.status === "active") return null;
+  const fallback = {
+    warned: "We've had a report about your behaviour. Please follow the community rules, or your account may be suspended.",
+    suspended: "You can still read your chats, but you can't message, send requests or change your listings while we review a report.",
+    banned: "Your account has been closed for breaking the community rules.",
+  }[row.status];
+  if (!fallback) return null;
+  const title = { warned: "Warning", suspended: "Account suspended", banned: "Account closed" }[row.status]!;
+  return { title, text: row.message || fallback };
 }

@@ -76,6 +76,8 @@ begin
     ('propose_lockin'), ('respond_to_lockin'), ('cancel_lockin'), ('my_matches'),
     -- Used inside row rules and views, which run them as the signed-in person.
     ('is_blocked_between'), ('is_member'), ('chat_has_block'), ('is_admin'),
+    -- Your own blocked list (first names only).
+    ('my_blocks'),
     -- Admin only: both refuse anyone who isn't in the admins table.
     ('admin_report_evidence'), ('moderate')
   ), actual as (
