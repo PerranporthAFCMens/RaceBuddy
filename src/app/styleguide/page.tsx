@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { DayDivider, MessageBubble, ReplyBar, TypingLine } from "@/components/chat/ChatParts";
 import { LoadingCards } from "@/components/LoadingCards";
+import { ArrowDivider, Arrows } from "@/components/Arrows";
 import { Logo } from "@/components/Logo";
 import { ReportRow } from "@/components/admin/ReportRow";
 import { ReportForm } from "@/components/ReportForm";
@@ -250,6 +251,17 @@ export default async function Styleguide({ searchParams }: PageProps<"/styleguid
               evidence_count: 6,
             }}
           />
+        </section>
+
+        <section aria-labelledby="sg-arrows" className="space-y-4">
+          <h2 id="sg-arrows" className="heading">Arrows</h2>
+          <p className="text-sm text-muted">You go, I go. Above the big logo, on choice buttons and between big bands. Never on its own as a button.</p>
+          <div className="flex items-end justify-center gap-6">
+            <Arrows className="h-14 w-16" />
+            <Arrows className="h-6 w-7" />
+            <Arrows className="h-4 w-5" />
+          </div>
+          <ArrowDivider />
         </section>
 
         <section aria-labelledby="sg-loading" className="space-y-4">
