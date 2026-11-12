@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DayDivider, MessageBubble, ReplyBar, TypingLine } from "@/components/chat/ChatParts";
+import { ReportForm } from "@/components/ReportForm";
 import { findLinks, layoutMessages, seenBy, snippet, summariseReactions, timeLabel, type ReactionRow } from "@/lib/chat";
 import { createClient } from "@/lib/supabase/client";
 import type { Message } from "@/lib/types";
@@ -45,6 +46,7 @@ export function Chat({
   const [typing, setTyping] = useState<Record<string, number>>({});
   const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+  const [reportId, setReportId] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -358,8 +360,25 @@ export function Chat({
                   box.current?.focus();
                 }}
                 onCopy={() => void copy(m.body)}
+                onReport={
+                  mine
+                    ? undefined
+                    : () => {
+                        setReportId(m.id);
+                        setOpenId(null);
+                      }
+                }
                 onRetry={() => retry(m)}
               />
+              {reportId === m.id && (
+                <div className="mt-2 space-y-3 border border-line bg-panel p-3">
+                  <p className="text-sm font-semibold">Report this message from {nameOf(m.sender_id)}</p>
+                  <ReportForm messageId={m.id} people={[]} />
+                  <button type="button" onClick={() => setReportId(null)} className="btn-ghost w-full">
+                    Close
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}

@@ -41,6 +41,10 @@ export type BubbleProps = {
   onReact?: (emoji: string) => void;
   onReply?: () => void;
   onCopy?: () => void;
+  /** Only on other people's messages. */
+  onReport?: () => void;
+  /** Show the Report option without a handler (styleguide). */
+  showReport?: boolean;
   onRetry?: () => void;
 };
 
@@ -60,6 +64,8 @@ export function MessageBubble({
   onReact,
   onReply,
   onCopy,
+  onReport,
+  showReport = Boolean(onReport),
   onRetry,
 }: BubbleProps) {
   const side = mine ? "items-end" : "items-start";
@@ -127,7 +133,7 @@ export function MessageBubble({
               );
             })}
           </div>
-          <div className="grid grid-cols-2 border-t border-edge">
+          <div className={`grid border-t border-edge ${showReport ? "grid-cols-3" : "grid-cols-2"}`}>
             <button type="button" onClick={onReply} className="h-11 text-xs font-semibold uppercase tracking-wide hover:bg-soft">
               Reply
             </button>
@@ -138,6 +144,15 @@ export function MessageBubble({
             >
               Copy
             </button>
+            {showReport && (
+              <button
+                type="button"
+                onClick={onReport}
+                className="h-11 border-l border-edge text-xs font-semibold uppercase tracking-wide text-danger hover:bg-soft"
+              >
+                Report
+              </button>
+            )}
           </div>
         </div>
       )}

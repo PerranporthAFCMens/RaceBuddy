@@ -46,11 +46,16 @@ export function ProfileForm({
             type="date"
             defaultValue={profile?.date_of_birth ?? ""}
             max={maxDob.toISOString().slice(0, 10)}
+            readOnly={Boolean(profile?.date_of_birth)}
+            aria-describedby="dob-help"
             required
           />
         </label>
       </div>
-      <p className="-mt-3 text-xs text-muted">Others see your age, not your date of birth. 18+ only.</p>
+      <p id="dob-help" className="-mt-3 text-xs text-muted">
+        Others see your age, not your date of birth. 18+ only.
+        {profile?.date_of_birth ? " Your date of birth can't be changed here. Contact us if it's wrong." : " You can't change it later, so check it."}
+      </p>
 
       <div className="grid grid-cols-2 items-end gap-3">
         <label className="block">
