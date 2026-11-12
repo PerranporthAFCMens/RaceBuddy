@@ -578,6 +578,21 @@ do $$ begin
   assert (select count(*) from public.report_evidence where is_reported) = 1, 'reported message marked';
 end $$;
 
+-- A report about a whole chat (no single message) copies its latest messages,
+-- with none marked as the reported one. Removed again so later counts hold.
+select pg_temp.act_as(:'uma');
+set role authenticated;
+insert into public.reports (reporter_id, reported_id, conversation_id, category, reason)
+values (auth.uid(), 'cccccccc-cccc-cccc-cccc-cccccccccccc', :'safety_conv', 'harassment', 'Whole chat');
+reset role;
+do $$ begin
+  assert (select count(*) from public.report_evidence e join public.reports r on r.id = e.report_id
+          where r.reason = 'Whole chat') = 2, 'chat report copies the chat';
+  assert not exists (select 1 from public.report_evidence e join public.reports r on r.id = e.report_id
+                     where r.reason = 'Whole chat' and e.is_reported), 'no single message marked';
+end $$;
+delete from public.reports where reason = 'Whole chat';
+
 -- The admin sees every report, and opening evidence needs a reason and is logged.
 select pg_temp.act_as(:'ria');
 set role authenticated;
