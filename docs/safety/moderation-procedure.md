@@ -8,6 +8,11 @@ Date: 2026-11-12. Status: draft for owner and legal review. Next review: by
 - **Moderator and accountable person:** the owner (Adam), listed as an admin.
   Admins are added only by SQL that the owner runs.
 - Organisers never see reports, evidence or chats.
+- **Later, by choice:** the owner may let an event's organiser staff moderate
+  that event. Before switching it on: a signed agreement with the organiser,
+  updated Terms and Privacy, and organiser moderators follow this same
+  procedure. The owner keeps oversight and still handles urgent and under-18
+  reports.
 - An admin can't take action against another admin.
 
 ## Where

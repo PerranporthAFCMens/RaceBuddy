@@ -17,7 +17,13 @@ final (see `src/design/brand.ts`).
 ## Who is responsible
 
 - **Named person accountable for safety:** the owner (Adam), as the service's
-  admin. Organisers (for example KeltX) never see reports or chats.
+  admin. Moderation is part of the paid service the owner provides to
+  organisers.
+- **Decision (2026-11-12):** the owner moderates every event by default. The
+  owner may later choose to let an event's organiser staff moderate that
+  event (switched on per event, once the organiser console supports it). The
+  owner keeps oversight and still receives urgent and under-18 reports. Until
+  then, organisers (for example KeltX) never see reports or chats.
 - **Safety and complaints contact:** the address in `SAFETY_EMAIL`
   (`src/lib/legal.ts`), shown on the Terms and Privacy pages. It must be
   checked at least every working day.
@@ -39,3 +45,9 @@ final (see `src/design/brand.ts`).
   confidence").
 - Check the measures against the current version of Ofcom's illegal content
   codes (amended in 2026).
+- Limiting the owner's personal liability: whether to run the service through
+  a limited company, insurance (professional indemnity, cyber and data), and
+  liability wording in the Terms.
+- Before any organiser moderates: a written agreement with that organiser
+  (response times, confidentiality, who is responsible for what), and Terms
+  and Privacy wording that says organiser staff may see reported messages.
