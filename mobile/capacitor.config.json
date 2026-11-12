@@ -4,8 +4,18 @@
   "webDir": "www",
   "server": {
     "url": "https://www.ygig.co.uk/browse",
-    "allowNavigation": ["www.ygig.co.uk", "ygig.co.uk", "*.supabase.co"]
+    "allowNavigation": [
+      "www.ygig.co.uk",
+      "ygig.co.uk",
+      "*.supabase.co"
+    ],
+    "errorPath": "offline.html"
   },
-  "ios": { "contentInset": "never" },
-  "android": { "allowMixedContent": false }
+  "ios": {
+    "contentInset": "never"
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "backgroundColor": "#000000"
 }

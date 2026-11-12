@@ -9,7 +9,8 @@ where features are built; this folder only holds the native wrapper.
 - CI (`.github/workflows/mobile.yml`) builds both, unsigned, whenever this
   folder changes. No Mac is needed.
 - The app name must match `src/design/brand.ts`; a unit test checks it.
+- Icons, splash screens and `www/offline.html` are made from the brand by
+  `npm run app-assets` (from the repo root). Re-run it after a brand change.
 
-Still to do before the App Store: push notifications, app icons and splash,
-an offline screen, email links that open the app, and signed builds for
+Still to do before the App Store: push notifications, email links that open the app, and signed builds for
 TestFlight (needs the Apple Developer account).

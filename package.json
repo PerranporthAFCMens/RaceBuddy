@@ -22,6 +22,7 @@
     "tokens:check": "node --experimental-strip-types scripts/build-tokens.mts --check",
     "auth-emails": "node --experimental-strip-types scripts/build-auth-emails.mts",
     "auth-emails:check": "node --experimental-strip-types scripts/build-auth-emails.mts --check",
+    "app-assets": "node --experimental-strip-types scripts/build-app-assets.mts",
     "security:check": "node --experimental-strip-types scripts/security-check.mts",
     "test:brand": "playwright test",
     "test:brand:update": "playwright test --update-snapshots"
