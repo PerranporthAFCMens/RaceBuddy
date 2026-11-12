@@ -43,6 +43,9 @@ export type Profile = {
   travel_miles: number | null;
   five_k_seconds: number | null;
   best_race_time: string | null;
+  /** Added by migration 20261112120000_safety. Null until the person accepts the Terms. */
+  terms_version?: string | null;
+  terms_accepted_at?: string | null;
 };
 
 export type Entry = {

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 // Browser security headers on every kind of page, and no way to bounce
 // people to another site after signing in.
-const pages = ["/", "/login", "/privacy", "/styleguide", "/no-such-page", "/manifest.webmanifest"];
+const pages = ["/", "/login", "/privacy", "/terms", "/safety", "/styleguide", "/no-such-page", "/manifest.webmanifest"];
 
 for (const path of pages) {
   test(`security headers on ${path}`, async ({ request }) => {

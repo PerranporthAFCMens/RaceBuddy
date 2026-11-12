@@ -8,6 +8,8 @@ const SCREENS = [
   { name: "sign-in", path: "/login", heading: "Welcome back" },
   { name: "join", path: "/login?mode=signup", heading: "Find your partner" },
   { name: "privacy", path: "/privacy", heading: "Privacy" },
+  { name: "terms", path: "/terms", heading: "Terms of Use" },
+  { name: "safety", path: "/safety", heading: "Safety tips" },
   { name: "styleguide", path: "/styleguide", heading: "Styleguide" },
   // Organiser themes (src/design/tokens.ts): same checks, in each theme's colours.
   { name: "styleguide-monochrome", path: "/styleguide?theme=monochrome", heading: "Styleguide" },
