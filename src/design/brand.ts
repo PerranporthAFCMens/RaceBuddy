@@ -6,7 +6,7 @@
  * it automatically. See docs/rename-and-domain.md for the full checklist,
  * including the web address.
  */
-const name = "Race Buddy";
+const name = "YGIG";
 
 export const brand = {
   name,
