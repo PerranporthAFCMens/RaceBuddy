@@ -39,8 +39,7 @@ export default function Privacy() {
         <section className="space-y-2">
           <h2 className="font-bold uppercase text-fg">Reports and safety</h2>
           <p>
-            When someone reports a message, we keep a copy of that message and up to 5 before it with the report. Only the{" "}
-            {n} safety team can open it, they must give a reason, and every look is recorded. Nobody browses private chats.
+            When someone reports a message, we keep a copy of that message and up to 5 before it with the report. Only our moderators can open it, they must give a reason, and every look is recorded. Nobody browses private chats.
             If we close an account, we keep a scrambled (hashed) copy of its email address so it can&apos;t sign up again.
           </p>
         </section>

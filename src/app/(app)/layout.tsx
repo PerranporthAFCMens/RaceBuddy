@@ -40,8 +40,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
         {needsTerms && (
           <form action={acceptTerms} className="mb-5 space-y-3 border border-line bg-panel p-3 text-sm">
             <p>
-              We&apos;ve added <Link href="/terms" className="underline">Terms of Use</Link> covering behaviour, reporting and
-              safety. Please read them and agree.
+              We&apos;ve updated our <Link href="/terms" className="underline">Terms of Use</Link>. Please read them and agree.
             </p>
             <SubmitButton pendingText="Saving…">I agree</SubmitButton>
           </form>
