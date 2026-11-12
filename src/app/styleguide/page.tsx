@@ -4,6 +4,7 @@ import { Avatar } from "@/components/Avatar";
 import { DayDivider, MessageBubble, ReplyBar, TypingLine } from "@/components/chat/ChatParts";
 import { LoadingCards } from "@/components/LoadingCards";
 import { Logo } from "@/components/Logo";
+import { ReportRow } from "@/components/admin/ReportRow";
 import { ReportForm } from "@/components/ReportForm";
 import { MatchedFlag, TicketFlag } from "@/components/TicketFlag";
 import { TimeInput } from "@/components/TimeInput";
@@ -236,6 +237,19 @@ export default async function Styleguide({ searchParams }: PageProps<"/styleguid
             <p className="font-bold uppercase text-danger">Account suspended</p>
             <p className="mt-1">You can still read your chats, but you can&apos;t message, send requests or change your listings while we review a report.</p>
           </div>
+          <ReportRow
+            now={Date.parse("2026-11-12T12:00:00Z")}
+            report={{
+              id: "00000000-0000-0000-0000-000000000000",
+              created_at: "2026-11-12T10:00:00Z",
+              category: "threat",
+              priority: "urgent",
+              status: "open",
+              reported_name: "Sam",
+              reporter_name: "Jess",
+              evidence_count: 6,
+            }}
+          />
         </section>
 
         <section aria-labelledby="sg-loading" className="space-y-4">

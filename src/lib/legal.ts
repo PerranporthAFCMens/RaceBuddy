@@ -5,8 +5,8 @@
 export const TERMS_VERSION = "2026-11";
 
 /**
- * Where people can email about safety, complaints and their data. Null until
- * Adam picks a dedicated address (the repo is public, so not a personal one).
- * Until then the pages point to the in-app Report buttons instead.
+ * Where people can email about safety, complaints and their data. A business
+ * address only (the repo is public). Set to null to fall back to pointing
+ * people at the in-app Report buttons.
  */
-export const SAFETY_EMAIL: string | null = null;
+export const SAFETY_EMAIL: string | null = "hello@hybridone.co.uk";

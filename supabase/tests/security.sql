@@ -79,7 +79,7 @@ begin
     -- Your own blocked list (first names only).
     ('my_blocks'),
     -- Admin only: both refuse anyone who isn't in the admins table.
-    ('admin_report_evidence'), ('moderate')
+    ('admin_report_evidence'), ('moderate'), ('admin_reports'), ('admin_person')
   ), actual as (
     select p.proname::text f from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.prorettype <> 'trigger'::regtype
