@@ -13,3 +13,11 @@ trail); A was built.
 - `/styleguide`: new "Arrows" section.
 - Approved screenshots for home and the three styleguide pages refreshed
   (deliberate design change).
+
+## 2026-11-13: arrows next to the name everywhere
+
+Adam asked for the arrows next to YGIG all over the site. `<Logo />` now puts
+small arrows in front of the name by default (`arrows` prop), so every header
+(app screens, sign-in/join, terms, privacy, safety, Oops, styleguide) shows
+them. The home page passes `arrows={false}` because it already has big arrows
+above the logo. Emails and the app icon are unchanged.
