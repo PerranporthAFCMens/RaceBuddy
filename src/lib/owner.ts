@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
@@ -57,11 +57,12 @@ export type OwnerLockin = {
 
 /**
  * Event owner screens: the organisers this person runs (site admins run
- * every organiser). Anyone else gets "not found". The database checks again.
+ * every organiser). Anyone else gets the "Wrong account" page. The database
+ * checks again.
  */
 export async function requireOwner() {
   const ctx = await getOwner();
-  if (ctx.organisers.length === 0) notFound();
+  if (ctx.organisers.length === 0) redirect("/wrong-account?for=organiser");
   return ctx;
 }
 

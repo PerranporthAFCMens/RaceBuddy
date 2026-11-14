@@ -5,6 +5,7 @@ import { DayDivider, MessageBubble, ReplyBar, TypingLine } from "@/components/ch
 import { LoadingCards } from "@/components/LoadingCards";
 import { ArrowDivider, Arrows } from "@/components/Arrows";
 import { Logo } from "@/components/Logo";
+import { AccountMenu } from "@/components/AccountMenu";
 import { ReportRow } from "@/components/admin/ReportRow";
 import { ConsoleNav } from "@/components/console/ConsoleNav";
 import { StatTile } from "@/components/console/StatTile";
@@ -257,7 +258,7 @@ export default async function Styleguide({ searchParams }: PageProps<"/styleguid
 
         <section aria-labelledby="sg-console" className="space-y-4">
           <h2 id="sg-console" className="heading">Consoles</h2>
-          <p className="text-sm text-muted">Site admin and event owner screens: tabs across the top, numbers in tiles.</p>
+          <p className="text-sm text-muted">Admin console and organiser view: tabs across the top, numbers in tiles.</p>
           <ConsoleNav
             label="Example sections"
             items={[
@@ -274,6 +275,25 @@ export default async function Styleguide({ searchParams }: PageProps<"/styleguid
               <StatTile label="Open reports" value={3} href="/styleguide" />
             </li>
           </ul>
+        </section>
+
+        <section aria-labelledby="sg-account" className="space-y-4">
+          <h2 id="sg-account" className="heading">Account menu</h2>
+          <p className="text-sm text-muted">
+            Top right of every signed-in screen. Shows who you&apos;re signed in as, the areas you can switch to, and Sign out.
+          </p>
+          <div className="flex justify-end">
+            <AccountMenu
+              email="sam@example.com"
+              current="admin"
+              startOpen
+              areas={[
+                { area: "admin", label: "Admin console", href: "/styleguide" },
+                { area: "organiser", label: "Organiser view", href: "/styleguide" },
+                { area: "racer", label: "Racer app", href: "/styleguide" },
+              ]}
+            />
+          </div>
         </section>
 
         <section aria-labelledby="sg-arrows" className="space-y-4">
