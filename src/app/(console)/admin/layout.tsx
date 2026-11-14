@@ -3,13 +3,14 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { requireAdmin } from "@/lib/admin";
 import { getRoles } from "@/lib/roles";
 
+// Grouped by the admin's two jobs: keeping people safe, and setting up events.
 const ADMIN_TABS = [
-  { href: "/admin", label: "Overview" },
-  { href: "/admin/reports", label: "Reports" },
-  { href: "/admin/people", label: "People" },
-  { href: "/admin/organisers", label: "Organisers" },
-  { href: "/admin/events", label: "Events" },
-  { href: "/admin/log", label: "Log" },
+  { href: "/admin", label: "Today" },
+  { href: "/admin/reports", label: "Reports", group: "Safety" },
+  { href: "/admin/people", label: "People", group: "Safety" },
+  { href: "/admin/organisers", label: "Organisers", group: "Setup" },
+  { href: "/admin/events", label: "Events", group: "Setup" },
+  { href: "/admin/log", label: "Log", group: "Records" },
 ];
 
 /** Site admin console. Anyone who isn't an admin gets the "Wrong account" page. */
