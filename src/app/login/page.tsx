@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Logo } from "@/components/Logo";
 import { getUser } from "@/lib/data";
@@ -30,6 +31,12 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
         </p>
       )}
       <LoginForm initialMode={mode} next={next} situation={situation} />
+      <p className="mt-8 text-center text-sm text-muted">
+        Organising a race?{" "}
+        <Link href="/login/organiser" className="underline">
+          Organiser sign in
+        </Link>
+      </p>
     </main>
   );
 }

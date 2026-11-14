@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isSituation } from "@/lib/matching";
 import type { ActionState } from "@/lib/types";
 import { siteUrl } from "@/lib/site-env";
-import { safeNext } from "@/lib/safe-next";
+import { consoleNext, safeNext } from "@/lib/safe-next";
 import { brand } from "@/design/brand";
 
 const credentials = z.object({
@@ -36,7 +36,11 @@ export async function signUp(_: ActionState, formData: FormData): Promise<Action
   const supabase = await createClient();
   const origin = await siteOrigin();
   const situation = formData.get("situation");
-  const start = `/me?welcome=1${isSituation(situation) ? `&situation=${situation}` : ""}`;
+  // The organiser door skips the racer profile and goes straight to a console.
+  const start =
+    formData.get("door") === "organiser"
+      ? consoleNext(formData.get("next"))
+      : `/me?welcome=1${isSituation(situation) ? `&situation=${situation}` : ""}`;
   const { data, error } = await supabase.auth.signUp({
     ...parsed.data,
     options: { emailRedirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(start)}` },

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireProfile } from "@/lib/data";
+import { requireUser } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
 export type AdminReport = {
@@ -38,7 +38,7 @@ export type AdminFilter = (typeof ADMIN_FILTERS)[number];
 
 /** Admin screens only: anyone else gets "not found", so the page's existence isn't revealed. */
 export async function requireAdmin() {
-  const { user } = await requireProfile();
+  const user = await requireUser();
   const supabase = await createClient();
   const { data } = await supabase.rpc("is_admin");
   if (data !== true) notFound();

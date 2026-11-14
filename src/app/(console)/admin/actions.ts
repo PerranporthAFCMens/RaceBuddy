@@ -4,13 +4,13 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin, type EvidenceRow } from "@/lib/admin";
 import { dbError, formDate, optional } from "@/lib/console";
-import { requireProfile } from "@/lib/data";
+import { requireUser } from "@/lib/data";
 import type { ActionState } from "@/lib/types";
 
 const ACTIONS = ["review", "dismiss", "resolve", "warn", "suspend", "ban", "reinstate", "note"] as const;
 
 export async function moderateReport(_: ActionState, formData: FormData): Promise<ActionState> {
-  await requireProfile();
+  await requireUser();
   // Database functions refuse non-admins too; this also hides the screens.
   const { supabase } = await requireAdmin();
   const report = z.uuid().safeParse(formData.get("report_id"));
@@ -36,7 +36,7 @@ export async function moderateReport(_: ActionState, formData: FormData): Promis
 export type EvidenceState = { error?: string; rows?: EvidenceRow[] } | undefined;
 
 export async function viewEvidence(_: EvidenceState, formData: FormData): Promise<EvidenceState> {
-  await requireProfile();
+  await requireUser();
   // Database functions refuse non-admins too; this also hides the screens.
   const { supabase } = await requireAdmin();
   const report = z.uuid().safeParse(formData.get("report_id"));
@@ -52,7 +52,7 @@ const PERSON_ACTIONS = ["warn", "suspend", "ban", "reinstate", "note"] as const;
 
 /** An action on a person from the People screen (no report). */
 export async function moderatePerson(_: ActionState, formData: FormData): Promise<ActionState> {
-  await requireProfile();
+  await requireUser();
   // Database functions refuse non-admins too; this also hides the screens.
   const { supabase } = await requireAdmin();
   const user = z.uuid().safeParse(formData.get("user_id"));
@@ -80,7 +80,7 @@ export async function moderatePerson(_: ActionState, formData: FormData): Promis
 // ---------------------------------------------------------------------------
 
 export async function saveOrganiser(_: ActionState, formData: FormData): Promise<ActionState> {
-  await requireProfile();
+  await requireUser();
   const { supabase } = await requireAdmin();
   const id = optional(formData.get("organiser_id"));
   if (id && !z.uuid().safeParse(id).success) return { error: "That organiser no longer exists." };
@@ -97,7 +97,7 @@ export async function saveOrganiser(_: ActionState, formData: FormData): Promise
 }
 
 export async function addOwner(_: ActionState, formData: FormData): Promise<ActionState> {
-  await requireProfile();
+  await requireUser();
   const { supabase } = await requireAdmin();
   const org = z.uuid().safeParse(formData.get("organiser_id"));
   const email = z.email().safeParse(String(formData.get("email") ?? "").trim());
@@ -110,7 +110,7 @@ export async function addOwner(_: ActionState, formData: FormData): Promise<Acti
 }
 
 export async function removeOwner(_: ActionState, formData: FormData): Promise<ActionState> {
-  await requireProfile();
+  await requireUser();
   const { supabase } = await requireAdmin();
   const org = z.uuid().safeParse(formData.get("organiser_id"));
   const email = String(formData.get("email") ?? "");
@@ -122,7 +122,7 @@ export async function removeOwner(_: ActionState, formData: FormData): Promise<A
 }
 
 export async function saveEvent(_: ActionState, formData: FormData): Promise<ActionState> {
-  await requireProfile();
+  await requireUser();
   const { supabase } = await requireAdmin();
   const id = optional(formData.get("event_id"));
   const org = z.uuid().safeParse(formData.get("organiser_id"));
@@ -150,7 +150,7 @@ export async function saveEvent(_: ActionState, formData: FormData): Promise<Act
 }
 
 export async function addCategory(_: ActionState, formData: FormData): Promise<ActionState> {
-  await requireProfile();
+  await requireUser();
   const { supabase } = await requireAdmin();
   const event = z.uuid().safeParse(formData.get("event_id"));
   if (!event.success) return { error: "That event no longer exists." };
@@ -168,7 +168,7 @@ export async function addCategory(_: ActionState, formData: FormData): Promise<A
 }
 
 export async function removeCategory(_: ActionState, formData: FormData): Promise<ActionState> {
-  await requireProfile();
+  await requireUser();
   const { supabase } = await requireAdmin();
   const cat = z.uuid().safeParse(formData.get("category_id"));
   if (!cat.success) return { error: "That category no longer exists." };

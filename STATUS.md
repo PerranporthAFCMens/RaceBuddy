@@ -22,7 +22,7 @@ shared database, which covers every migration up to
 
 ## Next work
 
-- Organiser view (admin, organiser owner, read-only organiser staff).
+- Owner console: site admin (`/admin`) and event owners (`/organiser`), PRs for parts 1 to 3 (2026-11-14). Database `20261114120000_owner_console.sql` was run on 2026-11-14 (live check 72/72).
 - Phone apps (iOS and Android) with Capacitor, then the App Store and Google Play.
 - Email alerts: switch on once `RESEND_API_KEY` and `CRON_SECRET` are set in
   both Vercel projects.

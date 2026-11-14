@@ -10,3 +10,9 @@ export function safeNext(next: unknown, fallback = "/browse"): string {
   const base = "https://site.invalid";
   return new URL(next, base).origin === base ? next : fallback;
 }
+
+/** After the organiser door: a console page (/organiser or /admin), else /organiser. */
+export function consoleNext(next: unknown): string {
+  const path = safeNext(next, "/organiser");
+  return /^\/(organiser|admin)(\/|\?|$)/.test(path) ? path : "/organiser";
+}

@@ -28,8 +28,10 @@ export default function Privacy() {
           <h2 className="font-bold uppercase text-fg">Who sees what</h2>
           <p>
             Other signed-in athletes see your race profile and listings. Your email address is never shown. Messages are private to
-            the people in the chat. Race organisers never see chats. When you lock in a team, you agree to share the full names
-            you enter with the race organiser, so they can update the start list.
+            the people in the chat. Race organisers never see chats, reports or your email. The organiser of a race you list for
+            sees your listing as other athletes do (first name, age, category, ticket and status) and can take a listing off
+            their race. When you lock in a team, you agree to share the full names you enter with the race organiser, so they
+            can update the start list.
           </p>
           <p>
             If you give an order reference, we check with Ticket Tailor that the order exists and is for the right race and
