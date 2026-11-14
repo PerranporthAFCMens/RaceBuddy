@@ -8,7 +8,8 @@ import { colors as c } from "../../design/tokens.ts";
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-function wrap(title: string, lines: string[], link?: { href: string; label: string }) {
+/** The plain, on-brand frame shared by the notice emails (reports, organiser invites). */
+export function wrap(title: string, lines: string[], link?: { href: string; label: string }) {
   return `<!doctype html><html><body style="margin:0;background:${c.bg}">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${c.bg};padding:20px 0"><tr><td align="center">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:${c.bg};padding:24px">
@@ -43,7 +44,7 @@ export function buildAdminReportEmail(r: {
   const lines = [
     `Type: ${r.category}`,
     `Priority: ${r.priority}`,
-    `About: ${r.reportedName ?? "an athlete"}`,
+    `About: ${r.reportedName ?? "a racer"}`,
     ...(r.eventNames.length ? [`Listed on: ${r.eventNames.join(", ")}`] : []),
     `Made: ${when(r.createdAt)}`,
   ];
@@ -55,9 +56,9 @@ export function buildAdminReportEmail(r: {
 export function buildOrganiserReportEmail(r: { site: string; eventName: string; createdAt: string }) {
   const subject = `A report on ${r.eventName} is being reviewed`;
   const lines = [
-    `A report has been made about an athlete listed on ${r.eventName} (${when(r.createdAt)}).`,
+    `A report has been made about a racer listed on ${r.eventName} (${when(r.createdAt)}).`,
     `The ${brand.name} team is reviewing it. You don't need to do anything, and we'll be in touch if we need your help.`,
   ];
-  const text = [...lines, "", `${brand.name} event console: ${r.site}/organiser`].join("\n");
-  return { subject, text, html: wrap("Report being reviewed", lines, { href: `${r.site}/organiser`, label: "Event console" }) };
+  const text = [...lines, "", `${brand.name} organiser view: ${r.site}/organiser`].join("\n");
+  return { subject, text, html: wrap("Report being reviewed", lines, { href: `${r.site}/organiser`, label: "Organiser view" }) };
 }

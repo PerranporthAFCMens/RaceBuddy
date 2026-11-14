@@ -5,6 +5,9 @@ import { z } from "zod";
 import { requireAdmin, type EvidenceRow } from "@/lib/admin";
 import { dbError, formDate, optional } from "@/lib/console";
 import { requireUser } from "@/lib/data";
+import { sendOrganiserInvite } from "@/lib/invite/send";
+import { siteUrl } from "@/lib/site-env";
+import { headers } from "next/headers";
 import type { ActionState } from "@/lib/types";
 
 const ACTIONS = ["review", "dismiss", "resolve", "warn", "suspend", "ban", "reinstate", "note"] as const;
@@ -100,13 +103,33 @@ export async function addOwner(_: ActionState, formData: FormData): Promise<Acti
   await requireUser();
   const { supabase } = await requireAdmin();
   const org = z.uuid().safeParse(formData.get("organiser_id"));
-  const email = z.email().safeParse(String(formData.get("email") ?? "").trim());
+  const email = z.email().safeParse(String(formData.get("email") ?? "").trim().toLowerCase());
   if (!org.success) return { error: "That organiser no longer exists." };
   if (!email.success) return { error: "Enter their email address." };
-  const { error } = await supabase.rpc("admin_add_owner", { p_org: org.data, p_email: email.data });
-  if (error) return { error: dbError(error) };
+  const { data: orgs } = await supabase.rpc("admin_organisers");
+  const organiser = ((orgs as { id: string; name: string }[] | null) ?? []).find((o) => o.id === org.data);
+  if (!organiser) return { error: "That organiser no longer exists." };
+
+  // Organisers join by invite only: this makes their account if needed, adds
+  // them as an owner, then emails them a sign-in link.
+  const h = await headers();
+  const sent = await sendOrganiserInvite({
+    email: email.data,
+    organiserName: organiser.name,
+    site: siteUrl(h.get("origin") ?? undefined),
+    addOwner: async () => {
+      const { error } = await supabase.rpc("admin_add_owner", { p_org: org.data, p_email: email.data });
+      return error ? dbError(error) : null;
+    },
+  });
+  if (!sent.ok) return { error: sent.error };
   revalidatePath("/admin", "layout");
-  return { ok: true, message: "Added. They'll see Event console on their profile." };
+  return {
+    ok: true,
+    message: sent.isNew
+      ? "Invite sent. They tap the link in the email, set a password and land in their events."
+      : "Added, and they've been emailed a sign-in link. They already had an account.",
+  };
 }
 
 export async function removeOwner(_: ActionState, formData: FormData): Promise<ActionState> {

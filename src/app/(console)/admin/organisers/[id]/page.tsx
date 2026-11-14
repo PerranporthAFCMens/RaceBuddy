@@ -33,8 +33,8 @@ export default async function AdminOrganiserPage({ params }: PageProps<"/admin/o
       <section className="space-y-3">
         <h2 className="font-bold uppercase">Owners</h2>
         <p className="text-sm text-muted">
-          Owners run this organiser&apos;s events in the Organiser view. They need an account first: add them by the
-          email they signed up with.
+          Owners run this organiser&apos;s events in the Organiser view. Add their email and we&apos;ll send them an
+          invite to set a password. If they already have an account, they get a sign-in link instead.
         </p>
         {organiser.owners.length === 0 ? (
           <p className="text-sm">No owner yet.</p>
@@ -51,7 +51,7 @@ export default async function AdminOrganiserPage({ params }: PageProps<"/admin/o
             ))}
           </ul>
         )}
-        <StateForm action={addOwner} submit="Add owner" buttonClass="btn-line w-full">
+        <StateForm action={addOwner} submit="Send invite" pendingText="Sending…" buttonClass="btn-line w-full">
           <input type="hidden" name="organiser_id" value={id} />
           <label className="block">
             <span className="field-label">Owner&apos;s email</span>

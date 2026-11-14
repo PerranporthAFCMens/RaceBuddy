@@ -154,7 +154,7 @@ export default async function ChatPage({ params }: PageProps<"/chats/[id]">) {
                 </SubmitButton>
               </form>
             ))}
-            <p className="text-xs text-muted">Blocked athletes can&apos;t see you or message you, and you won&apos;t see them. They aren&apos;t told. You can unblock from My profile.</p>
+            <p className="text-xs text-muted">Blocked racers can&apos;t see you or message you, and you won&apos;t see them. They aren&apos;t told. You can unblock from My profile.</p>
           </div>
         </details>
       )}

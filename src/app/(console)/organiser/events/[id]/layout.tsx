@@ -17,7 +17,7 @@ export default async function OwnerEventLayout({ children, params }: { children:
         <p className="text-center text-sm text-muted">
           {dateRange(event.starts_on, event.ends_on)}
           {event.venue ? ` · ${event.venue}` : ""}
-          {!event.is_active && !event.is_test ? " · hidden from athletes" : ""}
+          {!event.is_active && !event.is_test ? " · hidden from racers" : ""}
         </p>
       </div>
       <ConsoleNav

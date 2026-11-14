@@ -71,7 +71,7 @@ export default async function Styleguide({ searchParams }: PageProps<"/styleguid
         <section aria-labelledby="sg-themes" className="space-y-4">
           <h2 id="sg-themes" className="heading">Organiser themes</h2>
           <p className="text-sm text-muted">
-            Each organiser picks one. Athletes see it once they are signed in. This page is showing {themes[theme].label}.
+            Each organiser picks one. Racers see it once they are signed in. This page is showing {themes[theme].label}.
           </p>
           <nav aria-label="Themes" className="flex flex-wrap gap-2">
             {(Object.keys(themes) as ThemeName[]).map((name) => (
@@ -124,7 +124,7 @@ export default async function Styleguide({ searchParams }: PageProps<"/styleguid
             <button type="button" className="btn-white">Sign in</button>
             <button type="button" className="btn-line">Back</button>
             <button type="button" className="btn-ghost">Skip for now</button>
-            <button type="button" className="btn-danger">Block athlete</button>
+            <button type="button" className="btn-danger">Block racer</button>
             <button type="button" className="btn-gold" disabled>
               Saving…
             </button>

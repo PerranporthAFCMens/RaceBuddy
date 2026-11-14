@@ -17,7 +17,7 @@ export function LoginForm({
   initialMode: Mode;
   next: string;
   situation: string | null;
-  /** "organiser": the event owner door. Accounts made here skip the racer profile. */
+  /** "organiser": sign-in only. Organisers join by invite from the site admin. */
   door?: "athlete" | "organiser";
 }) {
   const [mode, setMode] = useState<Mode>(initialMode);
@@ -30,6 +30,8 @@ export function LoginForm({
 
   return (
     <div>
+      {/* Organisers join by invite only, so their door has no "new account" tab. */}
+      {door !== "organiser" && (
       <div className="mb-6 grid grid-cols-2 border border-edge" role="tablist">
         {(["signin", "signup"] as const).map((m) => (
           <button
@@ -40,14 +42,14 @@ export function LoginForm({
             onClick={() => setMode(m)}
             className={`min-h-11 text-sm font-semibold uppercase tracking-wide ${mode === m ? "bg-fg text-bg" : "text-muted"}`}
           >
-            {m === "signin" ? "Sign in" : door === "organiser" ? "New account" : "Join"}
+            {m === "signin" ? "Sign in" : "Join"}
           </button>
         ))}
       </div>
+      )}
 
       <ActionForm action={action} className="space-y-4">
         <input type="hidden" name="next" value={next} />
-        {door === "organiser" && <input type="hidden" name="door" value="organiser" />}
         {situation && <input type="hidden" name="situation" value={situation} />}
         <label className="block">
           <span className="field-label">Email</span>
