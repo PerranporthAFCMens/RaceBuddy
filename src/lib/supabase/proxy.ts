@@ -35,10 +35,10 @@ export async function updateSession(request: NextRequest) {
 
   if (!signedIn && !isPublic(request.nextUrl.pathname)) {
     const login = request.nextUrl.clone();
-    // The consoles have their own sign-in door (no racer profile needed).
+    // One sign-in page for everyone. From a console, "Join" skips the racer profile.
     const isConsole = /^\/(organiser|admin)(\/|$)/.test(request.nextUrl.pathname);
-    login.pathname = isConsole ? "/login/organiser" : "/login";
-    login.search = `?next=${encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)}`;
+    login.pathname = "/login";
+    login.search = `?${isConsole ? "door=organiser&" : ""}next=${encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)}`;
     return NextResponse.redirect(login);
   }
   return response;

@@ -14,7 +14,7 @@ const STEPS = [
 ];
 
 export default async function Home() {
-  if (await getUser()) redirect("/browse");
+  if (await getUser()) redirect("/start");
   const events = await getEvents();
 
   return (

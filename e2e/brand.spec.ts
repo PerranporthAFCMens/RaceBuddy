@@ -7,7 +7,7 @@ const SCREENS = [
   { name: "home", path: "/", heading: "Lost your partner? Find a new one." },
   { name: "sign-in", path: "/login", heading: "Welcome back" },
   { name: "join", path: "/login?mode=signup", heading: "Find your partner" },
-  { name: "organiser-sign-in", path: "/login/organiser", heading: "Organiser sign in" },
+  { name: "organiser-sign-in", path: "/login?door=organiser", heading: "Welcome back" },
   { name: "privacy", path: "/privacy", heading: "Privacy" },
   { name: "terms", path: "/terms", heading: "Terms of Use" },
   { name: "safety", path: "/safety", heading: "Safety tips" },

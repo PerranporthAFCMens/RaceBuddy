@@ -25,7 +25,7 @@ export async function signIn(_: ActionState, formData: FormData): Promise<Action
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return { error: "That email and password don't match. Try again or email yourself a sign-in link." };
-  redirect(safeNext(formData.get("next")));
+  redirect(safeNext(formData.get("next"), "/start"));
 }
 
 export async function signUp(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -36,7 +36,7 @@ export async function signUp(_: ActionState, formData: FormData): Promise<Action
   const supabase = await createClient();
   const origin = await siteOrigin();
   const situation = formData.get("situation");
-  // The organiser door skips the racer profile and goes straight to a console.
+  // Joining from an organiser link skips the racer profile and goes straight to a console.
   const start =
     formData.get("door") === "organiser"
       ? consoleNext(formData.get("next"))
@@ -57,7 +57,7 @@ export async function sendSignInLink(_: ActionState, formData: FormData): Promis
   const origin = await siteOrigin();
   await supabase.auth.signInWithOtp({
     email: email.data,
-    options: { shouldCreateUser: false, emailRedirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(safeNext(formData.get("next")))}` },
+    options: { shouldCreateUser: false, emailRedirectTo: `${origin}/auth/confirm?next=${encodeURIComponent(safeNext(formData.get("next"), "/start"))}` },
   });
   // Same answer whether or not the account exists, so emails can't be probed.
   return { ok: true, message: "If that email has an account, a sign-in link is on its way." };
