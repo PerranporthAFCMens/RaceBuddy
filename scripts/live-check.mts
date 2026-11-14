@@ -430,6 +430,25 @@ async function main() {
   const { error: resolveErr } = await mod.client.rpc("moderate", { p_action: "resolve", p_report: msgReport.id, p_note: `live check ${run}` });
   const closed = await one(mod.client.from("reports").select("status, closed_at").eq("id", msgReport.id).single(), "closed report");
   check("an admin can close a report", !resolveErr && closed.status === "actioned" && Boolean(closed.closed_at), resolveErr?.message ?? closed);
+
+  // Owner console (20261114120000_owner_console.sql): the admin runs every
+  // event; an athlete runs none. Hiding takes someone off one event only.
+  const { data: overview, error: overviewErr } = await mod.client.rpc("admin_overview");
+  check("the admin console overview loads", !overviewErr && (overview?.length ?? 0) === 1, overviewErr?.message);
+  const { data: tomOrgs } = await tom.client.rpc("my_organisers");
+  check("athletes run no organisers", (tomOrgs ?? []).length === 0, tomOrgs);
+  await expectError("athletes can't open an event's members", tom.client.rpc("owner_members", { p_event: event.id }), "don't run");
+  const { data: raceMembers, error: membersErr } = await mod.client.rpc("owner_members", { p_event: event.id });
+  check("the admin sees the test race's members", !membersErr && (raceMembers ?? []).some((m: { user_id: string }) => m.user_id === tom.id), membersErr?.message);
+  const { error: hideErr } = await mod.client.rpc("owner_hide_member", { p_event: event.id, p_user: tom.id, p_reason: `live check ${run}` });
+  const { data: tomGone } = await jess.client.from("feed_entries").select("id").eq("user_id", tom.id).eq("event_id", event.id);
+  const { error: unhideErr } = await mod.client.rpc("owner_unhide_member", { p_event: event.id, p_user: tom.id });
+  const { data: tomBack } = await jess.client.from("feed_entries").select("id").eq("user_id", tom.id).eq("event_id", event.id);
+  check(
+    "a member taken off an event disappears from browse, and comes back",
+    !hideErr && !unhideErr && tomGone?.length === 0 && (tomBack?.length ?? 0) > 0,
+    hideErr?.message ?? unhideErr?.message ?? { gone: tomGone?.length, back: tomBack?.length },
+  );
 }
 
 async function cleanUp() {
@@ -446,6 +465,7 @@ async function cleanUp() {
     await admin.from("reports").delete().in("id", reportIds);
   }
   if (userIds.length) await admin.from("moderation_actions").delete().in("user_id", userIds);
+  if (userIds.length) await admin.from("console_log").delete().in("actor_id", userIds);
   // Deleting the users removes their profiles, listings, requests, chats
   // membership, messages, lock-ins, blocks, admin role and account status.
   for (const id of userIds) {
