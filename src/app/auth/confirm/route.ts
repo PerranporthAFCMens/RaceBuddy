@@ -7,7 +7,7 @@ import { safeNext } from "@/lib/safe-next";
 // sign-in links). Handles both the PKCE `code` and the `token_hash` styles.
 export async function GET(request: NextRequest) {
   const url = request.nextUrl;
-  const next = safeNext(url.searchParams.get("next"));
+  const next = safeNext(url.searchParams.get("next"), "/start");
   const supabase = await createClient();
 
   const code = url.searchParams.get("code");
