@@ -1,9 +1,11 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireProfile } from "@/lib/data";
 import { isReportCategory, isSuspendedError, reportCategoryLabel, safeBlockRedirect, SUSPENDED_TEXT } from "@/lib/safety";
+import { notifyNewReport } from "@/lib/reports/notify";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/lib/types";
 
@@ -21,19 +23,25 @@ export async function reportUser(_: ActionState, formData: FormData): Promise<Ac
   if (!details.success) return { error: details.error.issues[0]?.message };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("reports").insert({
-    reporter_id: user.id,
-    reported_id: other.success ? other.data : null,
-    conversation_id: conv.success ? conv.data : null,
-    message_id: message.success ? message.data : null,
-    category,
-    reason: details.data || reportCategoryLabel(category),
-  });
+  const { data: saved, error } = await supabase
+    .from("reports")
+    .insert({
+      reporter_id: user.id,
+      reported_id: other.success ? other.data : null,
+      conversation_id: conv.success ? conv.data : null,
+      message_id: message.success ? message.data : null,
+      category,
+      reason: details.data || reportCategoryLabel(category),
+    })
+    .select("id")
+    .single();
   if (error) {
     if (error.message.startsWith("Slow down")) return { error: error.message };
     if (isSuspendedError(error.message)) return { error: SUSPENDED_TEXT };
     return { error: "Couldn't send your report. Please try again." };
   }
+  // Email the admin (and a heads-up to the race organisers) once the reporter has their answer.
+  if (saved) after(() => notifyNewReport(saved.id));
   return {
     ok: true,
     message: "Thanks, your report has been sent. We review every report, and they won't be told who reported them.",

@@ -30,7 +30,8 @@ export default function Privacy() {
             Other signed-in athletes see your race profile and listings. Your email address is never shown. Messages are private to
             the people in the chat. Race organisers never see chats, reports or your email. The organiser of a race you list for
             sees your listing as other athletes do (first name, age, category, ticket and status) and can take a listing off
-            their race. When you lock in a team, you agree to share the full names you enter with the race organiser, so they
+            their race. If someone listed on their race is reported, the organiser is only told that a report is being
+            reviewed, never who made it, who it is about or what was said. When you lock in a team, you agree to share the full names you enter with the race organiser, so they
             can update the start list.
           </p>
           <p>
