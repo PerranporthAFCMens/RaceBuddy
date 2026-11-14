@@ -14,8 +14,8 @@ test("admin email links straight to the report and says how urgent it is", () =>
     eventNames: ["Test Race"],
   });
   assert.match(e.subject, /^Urgent report/);
-  assert.ok(e.text.includes("https://example.test/admin/reports/abc"));
-  assert.ok(e.html.includes("https://example.test/admin/reports/abc"));
+  assert.ok(e.text.split("\n").includes("Review it: https://example.test/admin/reports/abc"));
+  assert.match(e.html, /href="https:\/\/example\.test\/admin\/reports\/abc"/);
   assert.ok(e.text.includes("Sam"));
 });
 
