@@ -90,3 +90,30 @@ export type ConsoleLogRow = {
 /** Date and time in UK time, for logs and admin screens. */
 export const ukTime = (iso: string) =>
   new Date(iso).toLocaleString("en-GB", { timeZone: "Europe/London", dateStyle: "medium", timeStyle: "short" });
+
+export type AdminOrganiser = {
+  id: string;
+  slug: string;
+  name: string;
+  website_url: string | null;
+  theme: unknown;
+  events: number;
+  owners: string[];
+};
+
+export type AdminEvent = {
+  id: string;
+  organiser_id: string;
+  organiser_name: string;
+  slug: string;
+  name: string;
+  venue: string | null;
+  starts_on: string;
+  ends_on: string;
+  ticket_url: string | null;
+  name_change_cutoff: string | null;
+  is_active: boolean;
+  is_test: boolean;
+  categories: number;
+  listings: number;
+};
