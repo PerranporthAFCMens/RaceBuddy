@@ -9,6 +9,12 @@ import type { ActionState } from "@/lib/types";
 // The database checks that the signed-in person runs this event's organiser
 // (or is a site admin) and logs every change.
 
+/** Taking a racer off an event is the organiser's decision only (Adam, 2026-11-14), not the site admin's. */
+async function refuseAdmin(supabase: Awaited<ReturnType<typeof createClient>>): Promise<ActionState | null> {
+  const { data } = await supabase.rpc("is_admin");
+  return data === true ? { error: "Only the event's organiser can take racers off or put them back." } : null;
+}
+
 export async function updateEvent(_: ActionState, formData: FormData): Promise<ActionState> {
   await requireUser();
   const event = z.uuid().safeParse(formData.get("event_id"));
@@ -38,6 +44,8 @@ export async function hideMember(_: ActionState, formData: FormData): Promise<Ac
   if (!event.success || !user.success) return { error: "That listing no longer exists." };
   if (!reason.success) return { error: "Keep the reason under 280 characters." };
   const supabase = await createClient();
+  const refused = await refuseAdmin(supabase);
+  if (refused) return refused;
   const { error } = await supabase.rpc("owner_hide_member", { p_event: event.data, p_user: user.data, p_reason: reason.data || null });
   if (error) return { error: dbError(error) };
   revalidatePath("/organiser", "layout");
@@ -50,6 +58,8 @@ export async function restoreMember(_: ActionState, formData: FormData): Promise
   const user = z.uuid().safeParse(formData.get("user_id"));
   if (!event.success || !user.success) return { error: "That listing no longer exists." };
   const supabase = await createClient();
+  const refused = await refuseAdmin(supabase);
+  if (refused) return refused;
   const { error } = await supabase.rpc("owner_unhide_member", { p_event: event.data, p_user: user.data });
   if (error) return { error: dbError(error) };
   revalidatePath("/organiser", "layout");

@@ -105,6 +105,14 @@ export async function requireOwnedEvent(eventId: string) {
 }
 
 /** What a listing is looking for, in words. */
+/**
+ * A team at risk: a ticket holder whose partner or teammate dropped out, still
+ * looking for a replacement, and still listed on the event.
+ */
+export function isAtRisk(m: Pick<OwnerMember, "situation" | "status" | "hidden">) {
+  return m.situation === "spare_spot" && m.status === "looking" && !m.hidden;
+}
+
 export function situationLabel(s: string) {
   return { spare_spot: "Has a spare spot", need_spot: "Needs a spot", single: "Single, wants a single" }[s] ?? s;
 }

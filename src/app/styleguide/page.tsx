@@ -9,6 +9,7 @@ import { AccountMenu } from "@/components/AccountMenu";
 import { ReportRow } from "@/components/admin/ReportRow";
 import { ConsoleNav } from "@/components/console/ConsoleNav";
 import { StatTile } from "@/components/console/StatTile";
+import { HeadlineTile } from "@/components/console/HeadlineTile";
 import { ReportForm } from "@/components/ReportForm";
 import { MatchedFlag, TicketFlag } from "@/components/TicketFlag";
 import { TimeInput } from "@/components/TimeInput";
@@ -266,6 +267,13 @@ export default async function Styleguide({ searchParams }: PageProps<"/styleguid
               { href: "/styleguide/members", label: "Members" },
               { href: "/styleguide/settings", label: "Settings" },
             ]}
+          />
+          <HeadlineTile
+            label="Teams at risk"
+            value={23}
+            note="Ticket holders whose partner dropped out and who haven't found a replacement yet."
+            href="/styleguide"
+            action="See who"
           />
           <ul className="grid grid-cols-2 gap-2">
             <li>

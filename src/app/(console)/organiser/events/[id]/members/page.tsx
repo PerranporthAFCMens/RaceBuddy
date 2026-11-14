@@ -2,12 +2,14 @@ import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { StateForm } from "@/components/console/StateForm";
 import { brand } from "@/design/brand";
-import { requireOwnedEvent, situationLabel, type OwnerMember } from "@/lib/owner";
+import { getRoles } from "@/lib/roles";
+import { isAtRisk, requireOwnedEvent, situationLabel, type OwnerMember } from "@/lib/owner";
 import { hideMember, restoreMember } from "../../../actions";
 
-export const metadata = { title: "Members" };
+export const metadata = { title: "Racers" };
 
 const FILTERS = [
+  ["at-risk", "At risk"],
   ["all", "Everyone"],
   ["looking", "Looking"],
   ["matched", "Matched"],
@@ -19,6 +21,7 @@ const FILTERS = [
 type Filter = (typeof FILTERS)[number][0];
 
 function keep(m: OwnerMember, f: Filter) {
+  if (f === "at-risk") return isAtRisk(m);
   if (f === "hidden") return m.hidden;
   if (f === "all") return true;
   if (m.hidden) return false;
@@ -27,12 +30,18 @@ function keep(m: OwnerMember, f: Filter) {
   return m.status === f;
 }
 
-/** Everyone listed at the event, with the details athletes see when browsing. */
+/**
+ * Everyone listed at the event, with the details racers see when browsing.
+ * Opens on the teams at risk. Taking someone off the event is the
+ * organiser's decision only, so the site admin doesn't get that button.
+ */
 export default async function OwnerMembersPage({ params, searchParams }: PageProps<"/organiser/events/[id]/members">) {
   const { id } = await params;
   const { supabase, event } = await requireOwnedEvent(id);
   const sp = await searchParams;
-  const filter: Filter = FILTERS.find(([f]) => f === sp.status)?.[0] ?? "all";
+  const filter: Filter = FILTERS.find(([f]) => f === sp.status)?.[0] ?? "at-risk";
+  const roles = await getRoles();
+  const canTakeOff = !roles?.isAdmin;
   const q = typeof sp.q === "string" ? sp.q.trim().slice(0, 40) : "";
   const { data } = await supabase.rpc("owner_members", { p_event: event.id });
   const all = (data as OwnerMember[] | null) ?? [];
@@ -46,18 +55,18 @@ export default async function OwnerMembersPage({ params, searchParams }: PagePro
           First name
         </label>
         <input id="q" className="input" name="q" defaultValue={q} placeholder="First name" />
-        {filter !== "all" && <input type="hidden" name="status" value={filter} />}
+        <input type="hidden" name="status" value={filter} />
         <button className="btn-line shrink-0">Search</button>
       </form>
-      <nav className="flex flex-wrap gap-2" aria-label="Filter members">
+      <nav className="flex flex-wrap gap-2" aria-label="Filter racers">
         {FILTERS.map(([f, label]) => (
-          <Link key={f} href={f === "all" ? base : `${base}?status=${f}`} className={`chip min-h-11 ${f === filter ? "chip-on" : ""}`}>
+          <Link key={f} href={f === "at-risk" ? base : `${base}?status=${f}`} className={`chip min-h-11 ${f === filter ? "chip-on" : ""}`}>
             {label}
           </Link>
         ))}
       </nav>
       <p className="text-xs text-muted">
-        {members.length} of {all.length}. You see what athletes see when browsing: never emails, dates of birth or chats.
+        {members.length} of {all.length}. You see what racers see when browsing: never emails, dates of birth or chats.
       </p>
       {members.length === 0 ? (
         <p className="text-center text-sm text-muted">Nobody here.</p>
@@ -80,13 +89,13 @@ export default async function OwnerMembersPage({ params, searchParams }: PagePro
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
-                  <span className={m.hidden ? "flag-gold" : m.status === "looking" ? "flag-ok" : "flag-line"}>
-                    {m.hidden ? "Taken off" : m.status}
+                  <span className={m.hidden ? "flag-line" : isAtRisk(m) ? "flag-gold" : m.status === "looking" ? "flag-ok" : "flag-line"}>
+                    {m.hidden ? "Taken off" : isAtRisk(m) ? "Partner missing" : m.status}
                   </span>
                   {m.ticket_verified && <span className="flag-line">Ticket checked</span>}
                 </div>
               </div>
-              {m.hidden ? (
+              {!canTakeOff ? null : m.hidden ? (
                 <StateForm action={restoreMember} submit="Put back on this event" buttonClass="btn-line w-full">
                   <input type="hidden" name="event_id" value={event.id} />
                   <input type="hidden" name="user_id" value={m.user_id} />
