@@ -32,7 +32,7 @@ export default async function AdminReportPage({ params }: PageProps<"/admin/repo
 
   return (
     <div className="space-y-8">
-      <Link href="/admin" className="inline-flex min-h-11 items-center text-sm text-muted underline">
+      <Link href="/admin/reports" className="inline-flex min-h-11 items-center text-sm text-muted underline">
         Back to reports
       </Link>
       <section className="space-y-2">

@@ -79,7 +79,16 @@ begin
     -- Your own blocked list (first names only).
     ('my_blocks'),
     -- Admin only: both refuse anyone who isn't in the admins table.
-    ('admin_report_evidence'), ('moderate'), ('admin_reports'), ('admin_person')
+    ('admin_report_evidence'), ('moderate'), ('admin_reports'), ('admin_person'),
+    ('admin_overview'), ('admin_people'), ('admin_person_listings'), ('admin_organisers'),
+    ('admin_save_organiser'), ('admin_add_owner'), ('admin_remove_owner'), ('admin_events'),
+    ('admin_save_event'), ('admin_add_category'), ('admin_remove_category'), ('admin_console_log'),
+    -- Event owners (and admins): each refuses anyone who doesn't run that organiser.
+    ('my_organisers'), ('owner_events'), ('owner_event_stats'), ('owner_members'),
+    ('owner_lockins'), ('owner_hide_member'), ('owner_unhide_member'), ('owner_update_event'),
+    ('owner_set_theme'),
+    -- Used inside the feed_entries view.
+    ('is_hidden_at')
   ), actual as (
     select p.proname::text f from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.prorettype <> 'trigger'::regtype

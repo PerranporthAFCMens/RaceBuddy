@@ -45,3 +45,29 @@ export async function viewEvidence(_: EvidenceState, formData: FormData): Promis
   if (error) return { error: "Couldn't load the messages. Please try again." };
   return { rows: (data as EvidenceRow[] | null) ?? [] };
 }
+
+const PERSON_ACTIONS = ["warn", "suspend", "ban", "reinstate", "note"] as const;
+
+/** An action on a person from the People screen (no report). */
+export async function moderatePerson(_: ActionState, formData: FormData): Promise<ActionState> {
+  await requireProfile();
+  // Database functions refuse non-admins too; this also hides the screens.
+  const { supabase } = await requireAdmin();
+  const user = z.uuid().safeParse(formData.get("user_id"));
+  const action = z.enum(PERSON_ACTIONS).safeParse(formData.get("action"));
+  const note = z.string().trim().min(5).max(1000).safeParse(formData.get("note") ?? "");
+  const message = z.string().trim().max(500).safeParse(formData.get("message") ?? "");
+  if (!user.success) return { error: "That account no longer exists." };
+  if (!action.success) return { error: "Choose what to do." };
+  if (!note.success) return { error: "Write a short note saying why (5 to 1,000 characters). It goes in the log." };
+  if (!message.success) return { error: "Keep the message under 500 characters." };
+  const { error } = await supabase.rpc("moderate", {
+    p_action: action.data,
+    p_user: user.data,
+    p_note: note.data,
+    p_message: message.data || null,
+  });
+  if (error) return { error: error.message.length < 140 ? error.message : "Couldn't save that. Please try again." };
+  revalidatePath("/admin", "layout");
+  return { ok: true, message: "Saved and logged." };
+}

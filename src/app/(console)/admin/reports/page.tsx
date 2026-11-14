@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ReportRow } from "@/components/admin/ReportRow";
 import { ADMIN_FILTERS, requireAdmin, type AdminFilter, type AdminReport } from "@/lib/admin";
 
-export const metadata = { title: "Moderation" };
+export const metadata = { title: "Reports" };
 
 const LABELS: Record<AdminFilter, string> = { open: "Open", underage: "Under 18?", closed: "Closed" };
 
-export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
+export default async function AdminPage({ searchParams }: PageProps<"/admin/reports">) {
   const { supabase } = await requireAdmin();
   const params = await searchParams;
   const filter: AdminFilter = ADMIN_FILTERS.includes(params.show as AdminFilter) ? (params.show as AdminFilter) : "open";
@@ -16,7 +16,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
 
   return (
     <div className="space-y-6">
-      <h1 className="heading">Moderation</h1>
+      <h1 className="heading">Reports</h1>
       {urgent > 0 && (
         <p role="status" className="border border-danger p-3 text-sm">
           <span className="font-bold uppercase text-danger">{urgent} urgent</span> Threats and suspected under-18s: review
@@ -25,7 +25,7 @@ export default async function AdminPage({ searchParams }: PageProps<"/admin">) {
       )}
       <nav className="flex gap-2" aria-label="Filter reports">
         {ADMIN_FILTERS.map((f) => (
-          <Link key={f} href={`/admin?show=${f}`} className={`chip min-h-11 ${f === filter ? "chip-on" : ""}`}>
+          <Link key={f} href={`/admin/reports?show=${f}`} className={`chip min-h-11 ${f === filter ? "chip-on" : ""}`}>
             {LABELS[f]}
           </Link>
         ))}

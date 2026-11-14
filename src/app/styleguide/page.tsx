@@ -6,6 +6,8 @@ import { LoadingCards } from "@/components/LoadingCards";
 import { ArrowDivider, Arrows } from "@/components/Arrows";
 import { Logo } from "@/components/Logo";
 import { ReportRow } from "@/components/admin/ReportRow";
+import { ConsoleNav } from "@/components/console/ConsoleNav";
+import { StatTile } from "@/components/console/StatTile";
 import { ReportForm } from "@/components/ReportForm";
 import { MatchedFlag, TicketFlag } from "@/components/TicketFlag";
 import { TimeInput } from "@/components/TimeInput";
@@ -251,6 +253,27 @@ export default async function Styleguide({ searchParams }: PageProps<"/styleguid
               evidence_count: 6,
             }}
           />
+        </section>
+
+        <section aria-labelledby="sg-console" className="space-y-4">
+          <h2 id="sg-console" className="heading">Consoles</h2>
+          <p className="text-sm text-muted">Site admin and event owner screens: tabs across the top, numbers in tiles.</p>
+          <ConsoleNav
+            label="Example sections"
+            items={[
+              { href: "/styleguide", label: "Overview" },
+              { href: "/styleguide/members", label: "Members" },
+              { href: "/styleguide/settings", label: "Settings" },
+            ]}
+          />
+          <ul className="grid grid-cols-2 gap-2">
+            <li>
+              <StatTile label="Listings" value={42} />
+            </li>
+            <li>
+              <StatTile label="Open reports" value={3} href="/styleguide" />
+            </li>
+          </ul>
         </section>
 
         <section aria-labelledby="sg-arrows" className="space-y-4">
