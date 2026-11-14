@@ -257,7 +257,7 @@ export default async function BrowsePage({ searchParams }: PageProps<"/browse">)
       </>
       )}
 
-      {error && <p className="text-sm text-danger">Couldn&apos;t load athletes. Pull to refresh or try again.</p>}
+      {error && <p className="text-sm text-danger">Couldn&apos;t load racers. Pull to refresh or try again.</p>}
 
       {athletes.length === 0 ? (
         forYou ? (
@@ -277,7 +277,7 @@ export default async function BrowsePage({ searchParams }: PageProps<"/browse">)
           </div>
         ) : (
           <p className="py-10 text-center text-muted">
-            No one matches these filters. Try fewer, or check back soon as more athletes join.
+            No one matches these filters. Try fewer, or check back soon as more racers join.
           </p>
         )
       ) : (

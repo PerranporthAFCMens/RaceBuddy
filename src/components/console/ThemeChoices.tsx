@@ -4,7 +4,7 @@ import { themes, type ThemeName } from "@/design/tokens";
 export function ThemeChoices({ current }: { current: ThemeName }) {
   return (
     <fieldset className="space-y-2">
-      <legend className="field-label">Colour theme for athletes</legend>
+      <legend className="field-label">Colour theme for racers</legend>
       {(Object.keys(themes) as ThemeName[]).map((name) => (
         <label key={name} className="card flex cursor-pointer items-center gap-3 p-3 has-checked:border-accent">
           <input type="radio" name="preset" value={name} defaultChecked={name === current} className="size-5 accent-accent" />

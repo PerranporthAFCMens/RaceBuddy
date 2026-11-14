@@ -73,7 +73,7 @@ export default async function RequestsPage({ searchParams }: PageProps<"/request
       <section>
         <h2 className="field-label mb-3">Asking you ({incoming.length})</h2>
         {incoming.length === 0 ? (
-          <p className="text-sm text-muted">No new requests. <Link href="/browse" className="underline">Browse athletes</Link> and make the first move.</p>
+          <p className="text-sm text-muted">No new requests. <Link href="/browse" className="underline">Browse racers</Link> and make the first move.</p>
         ) : (
           <ul className="space-y-3">
             {incoming.map((r) => {

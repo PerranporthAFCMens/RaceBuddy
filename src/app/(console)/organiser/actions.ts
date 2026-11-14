@@ -1,5 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { dbError, formDate, optional } from "@/lib/console";
 import { requireUser } from "@/lib/data";
@@ -64,4 +65,16 @@ export async function restoreMember(_: ActionState, formData: FormData): Promise
   if (error) return { error: dbError(error) };
   revalidatePath("/organiser", "layout");
   return { ok: true, message: "Back on this event." };
+}
+
+/** First visit from an invite: the organiser sets a password, then goes to their events. */
+export async function setPassword(_: ActionState, formData: FormData): Promise<ActionState> {
+  await requireUser();
+  const password = z.string().min(8, "Passwords need at least 8 characters.").safeParse(formData.get("password"));
+  if (!password.success) return { error: password.error.issues[0]?.message };
+  if (formData.get("adult") !== "on") return { error: "Please confirm you are 18 or over and agree to the terms." };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password: password.data });
+  if (error) return { error: "Couldn't save that password. Try a different one." };
+  redirect("/organiser");
 }

@@ -8,7 +8,7 @@ const TIPS: [string, string][] = [
   ["Meet somewhere public", "For a first session, pick a busy gym, a parkrun or the race venue. Not someone's home."],
   ["Tell someone", "Let a friend know who you're meeting, where and when. Share your live location if you can."],
   ["Get there yourself", "Make your own way there and back, so you can leave whenever you want."],
-  ["Keep money out of it", "Never send money, bank details or gift cards. Ticket name changes are paid to the organiser, not to another athlete."],
+  ["Keep money out of it", "Never send money, bank details or gift cards. Ticket name changes are paid to the organiser, not to another racer."],
   ["Keep chats here at first", "Stay in the app until you know them. It's where you can block and report."],
   ["Trust your gut", "If something feels wrong, leave, block them and report it. You don't need a reason."],
 ];

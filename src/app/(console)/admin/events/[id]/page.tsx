@@ -49,14 +49,14 @@ export default async function AdminEventPage({ params, searchParams }: PageProps
             }}
           />
         </StateForm>
-        {isNew && <p className="text-xs text-muted">New events start hidden from athletes. Add categories, then tick Show.</p>}
+        {isNew && <p className="text-xs text-muted">New events start hidden from racers. Add categories, then tick Show.</p>}
       </section>
 
       {event && (
         <section className="space-y-3">
           <h2 className="font-bold uppercase">Categories</h2>
           {categories.length === 0 ? (
-            <p className="text-sm">None yet. Athletes with a ticket need a category to pick.</p>
+            <p className="text-sm">None yet. Racers with a ticket need a category to pick.</p>
           ) : (
             <ul className="space-y-2">
               {categories.map((c) => (

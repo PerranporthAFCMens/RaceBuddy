@@ -18,5 +18,5 @@ export async function setTheme(_: ActionState, formData: FormData): Promise<Acti
   const { error } = await supabase.rpc("owner_set_theme", { p_org: org.data, p_preset: preset.data });
   if (error) return { error: dbError(error) };
   revalidatePath("/", "layout");
-  return { ok: true, message: "Theme saved. Athletes see it next time they open a screen." };
+  return { ok: true, message: "Theme saved. Racers see it next time they open a screen." };
 }

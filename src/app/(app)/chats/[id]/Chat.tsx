@@ -59,7 +59,7 @@ export function Chat({
   const lastTypingSent = useRef(0);
   const atBottomRef = useRef(true);
 
-  const nameOf = useCallback((uid: string) => (uid === me ? "You" : (names[uid] ?? "Athlete")), [me, names]);
+  const nameOf = useCallback((uid: string) => (uid === me ? "You" : (names[uid] ?? "Racer")), [me, names]);
   const isTeam = Object.keys(names).length > 1;
 
   const scrollToEnd = useCallback((smooth = false) => {
@@ -309,7 +309,7 @@ export function Chat({
     const who = seenBy(m.created_at, members);
     if (who.length === 0) return null;
     if (!isTeam) return "Seen";
-    return who.length === members.length ? "Seen by everyone" : `Seen by ${who.map((u) => names[u] ?? "Athlete").join(", ")}`;
+    return who.length === members.length ? "Seen by everyone" : `Seen by ${who.map((u) => names[u] ?? "Racer").join(", ")}`;
   }
 
   return (

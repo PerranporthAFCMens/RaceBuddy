@@ -36,7 +36,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
         )}
         <h1 className="heading mb-2">{welcome ? "Build your race profile" : "My profile"}</h1>
         {welcome && (
-          <p className="mb-6 text-center text-sm text-muted">This is what other athletes see. You can change it any time.</p>
+          <p className="mb-6 text-center text-sm text-muted">This is what other racers see. You can change it any time.</p>
         )}
         <div className={welcome ? "" : "mt-6"}>
           <ProfileForm profile={profile} photoUrl={photoUrl(profile?.photo_path)} welcome={welcome} situation={situation} />
@@ -79,7 +79,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
 
       {profile && !welcome && blocked.length > 0 && (
         <section>
-          <h2 className="heading mb-2">Blocked athletes</h2>
+          <h2 className="heading mb-2">Blocked racers</h2>
           <p className="mb-4 text-center text-sm text-muted">They can&apos;t see or message you. Unblocking doesn&apos;t tell them.</p>
           <ul className="space-y-2">
             {blocked.map((b) => (

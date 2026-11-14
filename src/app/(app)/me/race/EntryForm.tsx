@@ -117,7 +117,7 @@ export function EntryForm({
                   <input className="input" name="team_name" maxLength={60} defaultValue={entry?.team_name ?? ""} />
                 </label>
                 <label className="block">
-                  <span className="field-label">Athletes needed</span>
+                  <span className="field-label">Racers needed</span>
                   <select className="input" name="spots_needed" defaultValue={String(entry?.spots_needed ?? 1)}>
                     <option value="1">1 of 4</option>
                     <option value="2">2 of 4</option>

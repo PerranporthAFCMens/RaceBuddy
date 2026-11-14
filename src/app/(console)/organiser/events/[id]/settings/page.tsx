@@ -16,7 +16,7 @@ export default async function OwnerEventSettings({ params }: PageProps<"/organis
         <EventFields event={event} />
       </StateForm>
       <p className="text-xs text-muted">
-        To add an event, add categories, or show or hide an event from athletes, contact {brand.name}.
+        To add an event, add categories, or show or hide an event from racers, contact {brand.name}.
       </p>
     </div>
   );

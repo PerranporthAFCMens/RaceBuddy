@@ -65,7 +65,7 @@ export function EventFields({
       {admin && (
         <label className="flex min-h-11 items-center gap-3 text-sm">
           <input type="checkbox" name="is_active" defaultChecked={admin.isActive ?? false} className="size-5 accent-accent" />
-          Show this event to athletes
+          Show this event to racers
         </label>
       )}
     </>

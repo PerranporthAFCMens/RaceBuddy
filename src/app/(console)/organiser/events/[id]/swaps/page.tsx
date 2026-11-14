@@ -12,7 +12,7 @@ export default async function OwnerSwapsPage({ params }: PageProps<"/organiser/e
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted">
-        Teams that locked in a new partner. Both athletes agreed to share these names so you can update your start list. Name
+        Teams that locked in a new partner. Both racers agreed to share these names so you can update your start list. Name
         changes and any fee are between them and you.
       </p>
       {rows.length === 0 ? (

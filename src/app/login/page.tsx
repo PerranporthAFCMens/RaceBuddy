@@ -12,7 +12,7 @@ export const metadata = { title: "Sign in" };
  * The one sign-in page for racers, organisers and the admin. With no `next`,
  * signing in goes to /start, which sends each person to their own home.
  * `door=organiser` (organiser links, and signed-out visits to a console)
- * makes "Join" skip the racer profile.
+ * shows sign-in only: organisers join by invite.
  */
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const params = await searchParams;
@@ -25,7 +25,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const picked = SITUATIONS.find((s) => s.value === situation);
 
   const sub = organiser
-    ? "Race organisers: sign in to see your events. You don't need a racer profile."
+    ? "Race organisers: sign in to see your events. New organisers join by invite from us."
     : picked
       ? `${picked.title}. Create an account and we'll find people who fit.`
       : "Doubles and relay partners for race day.";
