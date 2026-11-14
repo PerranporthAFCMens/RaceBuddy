@@ -5,6 +5,8 @@ const ADMIN_TABS = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/reports", label: "Reports" },
   { href: "/admin/people", label: "People" },
+  { href: "/admin/organisers", label: "Organisers" },
+  { href: "/admin/events", label: "Events" },
   { href: "/admin/log", label: "Log" },
 ];
 
