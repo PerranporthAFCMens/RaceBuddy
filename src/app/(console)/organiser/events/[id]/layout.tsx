@@ -24,7 +24,7 @@ export default async function OwnerEventLayout({ children, params }: { children:
         label="Event sections"
         items={[
           { href: base, label: "Overview" },
-          { href: `${base}/members`, label: "Members" },
+          { href: `${base}/members`, label: "Racers" },
           { href: `${base}/swaps`, label: "Swaps" },
           { href: `${base}/settings`, label: "Settings" },
         ]}
