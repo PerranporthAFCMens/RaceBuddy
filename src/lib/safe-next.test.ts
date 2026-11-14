@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { safeNext } from "./safe-next.ts";
+import { consoleNext, safeNext } from "./safe-next.ts";
 
 test("keeps paths on this site", () => {
   assert.equal(safeNext("/me/race?event=x#alerts"), "/me/race?event=x#alerts");
@@ -15,4 +15,12 @@ test("refuses anything that could leave the site", () => {
 
 test("uses the fallback given", () => {
   assert.equal(safeNext("//x", "/me"), "/me");
+});
+
+test("the organiser door only lands on a console page", () => {
+  assert.equal(consoleNext("/organiser/events/x"), "/organiser/events/x");
+  assert.equal(consoleNext("/admin/reports?status=open"), "/admin/reports?status=open");
+  for (const other of ["/browse", "/me?welcome=1", "/organisers", "//evil.com", null]) {
+    assert.equal(consoleNext(other), "/organiser", String(other));
+  }
 });

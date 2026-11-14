@@ -8,7 +8,18 @@ import { sendSignInLink, signIn, signUp } from "./actions";
 
 type Mode = "signin" | "signup" | "link";
 
-export function LoginForm({ initialMode, next, situation }: { initialMode: Mode; next: string; situation: string | null }) {
+export function LoginForm({
+  initialMode,
+  next,
+  situation,
+  door = "athlete",
+}: {
+  initialMode: Mode;
+  next: string;
+  situation: string | null;
+  /** "organiser": the event owner door. Accounts made here skip the racer profile. */
+  door?: "athlete" | "organiser";
+}) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [signInState, signInAction] = useActionState(signIn, undefined);
   const [signUpState, signUpAction] = useActionState(signUp, undefined);
@@ -29,13 +40,14 @@ export function LoginForm({ initialMode, next, situation }: { initialMode: Mode;
             onClick={() => setMode(m)}
             className={`min-h-11 text-sm font-semibold uppercase tracking-wide ${mode === m ? "bg-fg text-bg" : "text-muted"}`}
           >
-            {m === "signin" ? "Sign in" : "Join"}
+            {m === "signin" ? "Sign in" : door === "organiser" ? "New account" : "Join"}
           </button>
         ))}
       </div>
 
       <ActionForm action={action} className="space-y-4">
         <input type="hidden" name="next" value={next} />
+        {door === "organiser" && <input type="hidden" name="door" value="organiser" />}
         {situation && <input type="hidden" name="situation" value={situation} />}
         <label className="block">
           <span className="field-label">Email</span>

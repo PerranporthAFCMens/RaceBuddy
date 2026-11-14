@@ -1,14 +1,14 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireProfile } from "@/lib/data";
+import { requireUser } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { dbError } from "@/lib/console";
 import type { ActionState } from "@/lib/types";
 
 /** Colour theme for an organiser's athletes. Site admins and that organiser's owners. */
 export async function setTheme(_: ActionState, formData: FormData): Promise<ActionState> {
-  await requireProfile();
+  await requireUser();
   const org = z.uuid().safeParse(formData.get("organiser_id"));
   const preset = z.enum(["race-night", "monochrome", "daylight"]).safeParse(formData.get("preset"));
   if (!org.success) return { error: "That organiser no longer exists." };

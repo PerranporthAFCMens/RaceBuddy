@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireProfile } from "@/lib/data";
+import { requireUser } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
 export type OwnerOrganiser = { id: string; slug: string; name: string; theme: unknown };
@@ -60,11 +60,20 @@ export type OwnerLockin = {
  * every organiser). Anyone else gets "not found". The database checks again.
  */
 export async function requireOwner() {
-  const { user } = await requireProfile();
+  const ctx = await getOwner();
+  if (ctx.organisers.length === 0) notFound();
+  return ctx;
+}
+
+/**
+ * The signed-in person and the organisers they run (maybe none). No racer
+ * profile is needed: event owners can use the console without one.
+ */
+export async function getOwner() {
+  const user = await requireUser();
   const supabase = await createClient();
   const { data } = await supabase.rpc("my_organisers");
   const organisers = (data as OwnerOrganiser[] | null) ?? [];
-  if (organisers.length === 0) notFound();
   return { user, supabase, organisers };
 }
 

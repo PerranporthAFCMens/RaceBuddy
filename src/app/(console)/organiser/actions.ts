@@ -2,7 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { dbError, formDate, optional } from "@/lib/console";
-import { requireProfile } from "@/lib/data";
+import { requireUser } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionState } from "@/lib/types";
 
@@ -10,7 +10,7 @@ import type { ActionState } from "@/lib/types";
 // (or is a site admin) and logs every change.
 
 export async function updateEvent(_: ActionState, formData: FormData): Promise<ActionState> {
-  await requireProfile();
+  await requireUser();
   const event = z.uuid().safeParse(formData.get("event_id"));
   if (!event.success) return { error: "That event no longer exists." };
   const starts = formDate(formData.get("starts_on"));
@@ -31,7 +31,7 @@ export async function updateEvent(_: ActionState, formData: FormData): Promise<A
 }
 
 export async function hideMember(_: ActionState, formData: FormData): Promise<ActionState> {
-  await requireProfile();
+  await requireUser();
   const event = z.uuid().safeParse(formData.get("event_id"));
   const user = z.uuid().safeParse(formData.get("user_id"));
   const reason = z.string().trim().max(280).safeParse(formData.get("reason") ?? "");
@@ -45,7 +45,7 @@ export async function hideMember(_: ActionState, formData: FormData): Promise<Ac
 }
 
 export async function restoreMember(_: ActionState, formData: FormData): Promise<ActionState> {
-  await requireProfile();
+  await requireUser();
   const event = z.uuid().safeParse(formData.get("event_id"));
   const user = z.uuid().safeParse(formData.get("user_id"));
   if (!event.success || !user.success) return { error: "That listing no longer exists." };

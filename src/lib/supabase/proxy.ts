@@ -35,7 +35,9 @@ export async function updateSession(request: NextRequest) {
 
   if (!signedIn && !isPublic(request.nextUrl.pathname)) {
     const login = request.nextUrl.clone();
-    login.pathname = "/login";
+    // The consoles have their own sign-in door (no racer profile needed).
+    const isConsole = /^\/(organiser|admin)(\/|$)/.test(request.nextUrl.pathname);
+    login.pathname = isConsole ? "/login/organiser" : "/login";
     login.search = `?next=${encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)}`;
     return NextResponse.redirect(login);
   }

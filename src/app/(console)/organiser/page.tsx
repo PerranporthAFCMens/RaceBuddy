@@ -4,14 +4,32 @@ import { StateForm } from "@/components/console/StateForm";
 import { ThemeChoices } from "@/components/console/ThemeChoices";
 import { themeFromSetting } from "@/design/tokens";
 import { dateRange } from "@/lib/console";
-import { requireOwner, type OwnerEvent } from "@/lib/owner";
+import { SAFETY_EMAIL } from "@/lib/legal";
+
+const CONTACT_EMAIL = SAFETY_EMAIL ?? `hello@${brand.domain}`;
+import { getOwner, type OwnerEvent } from "@/lib/owner";
 import { setTheme } from "../actions";
 
 export const metadata = { title: "Event console" };
 
 /** Every organiser this person runs, with its events and colour theme. */
 export default async function OrganiserHomePage() {
-  const { supabase, organisers } = await requireOwner();
+  const { user, supabase, organisers } = await getOwner();
+  if (organisers.length === 0) {
+    // Signed in through the organiser door, but not added as an owner yet.
+    return (
+      <section className="space-y-4">
+        <h1 className="heading">No events yet</h1>
+        <p className="text-center text-sm">
+          {user.email ?? "This account"} doesn&apos;t run any events on {brand.name} yet. If you organise a race, email{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`} className="underline">{CONTACT_EMAIL}</a> from this address and we&apos;ll add you.
+        </p>
+        <Link href="/browse" className="btn-line w-full">
+          Looking for a race partner? Go to the app
+        </Link>
+      </section>
+    );
+  }
   const eventLists = await Promise.all(organisers.map((o) => supabase.rpc("owner_events", { p_org: o.id })));
 
   return (
