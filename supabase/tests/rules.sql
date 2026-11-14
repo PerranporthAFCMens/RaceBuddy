@@ -702,3 +702,150 @@ update public.profiles set bio = 'Love wall balls' where id = auth.uid();
 select pg_temp.expect_error($q$select public.has_blocked_word('x')$q$, 'permission denied');
 select pg_temp.expect_error($q$select * from public.blocked_words$q$, 'permission denied');
 reset role;
+
+-- Owner console: site admin and event owners -----------------------------------
+\set ola '0a0a0a0a-0a0a-0a0a-0a0a-0a0a0a0a0a0a'
+insert into auth.users (id, email) values (:'ola', 'ola@example.com');
+select id as keltx from public.organisers where slug = 'keltx' \gset
+select id as exeter from public.events where slug = 'keltx-exeter-2027' \gset
+select id as testrace from public.events where slug = 'test-race' \gset
+
+-- Before being made an owner, Ola sees nothing and can change nothing.
+select pg_temp.act_as(:'ola');
+set role authenticated;
+do $$ begin assert (select count(*) from public.my_organisers()) = 0, 'not an owner yet'; end $$;
+select pg_temp.expect_error(format('select * from public.owner_members(%L)', :'exeter'), 'don''t run this event');
+select pg_temp.expect_error(format($q$select public.owner_set_theme(%L, 'daylight')$q$, :'keltx'), 'don''t run');
+select pg_temp.expect_error('select * from public.admin_overview()', 'Admins only');
+select pg_temp.expect_error(format($q$select public.admin_add_owner(%L, 'ola@example.com')$q$, :'keltx'), 'Admins only');
+select pg_temp.expect_error('select * from public.organiser_owners', 'permission denied');
+select pg_temp.expect_error('select * from public.event_hidden_members', 'permission denied');
+select pg_temp.expect_error('select * from public.console_log', 'permission denied');
+reset role;
+
+-- Ria (site admin) sees everything and makes Ola an owner of KeltX.
+select pg_temp.act_as(:'ria');
+set role authenticated;
+do $$ begin
+  assert (select events >= 2 and people >= 10 from public.admin_overview()), 'admin overview';
+  assert (select count(*) from public.admin_people('example.com')) >= 10, 'admin finds people by email';
+  assert (select count(*) from public.admin_people('Bea')) = 1, 'admin finds people by name';
+  assert (select count(*) from public.my_organisers()) >= 2, 'admin runs every organiser';
+end $$;
+select pg_temp.expect_error(format($q$select public.admin_add_owner(%L, 'nobody@example.com')$q$, :'keltx'), 'sign up first');
+select public.admin_add_owner(:'keltx', ' OLA@example.com ');
+do $$ begin
+  assert (select owners = array['ola@example.com'] from public.admin_organisers() where slug = 'keltx'), 'owner listed';
+end $$;
+-- Admin adds an organiser, an event under it and a category; bad input is refused.
+select pg_temp.expect_error($q$select public.admin_save_organiser(null, 'Bad', 'Not OK', null)$q$, 'lower-case');
+select public.admin_save_organiser(null, 'Other Races', 'other-races', 'https://example.com') as other_org \gset
+select pg_temp.expect_error(
+  format($q$select public.admin_save_event(null, %L, 'other-1', 'Other One', null, '2027-05-02', '2027-05-01', null, null, false)$q$, :'other_org'),
+  'on or after');
+select public.admin_save_event(null, :'other_org', 'other-1', 'Other One', 'Somewhere', '2027-05-01', '2027-05-02', 'https://example.com/t', '2027-04-20', false) as other_event \gset
+select public.admin_add_category(:'other_event', 'Mixed Doubles', 'doubles', 'mixed', 'Saturday', 2) as other_cat \gset
+select pg_temp.expect_error(format($q$select public.admin_add_category(%L, 'Odd', 'doubles', 'mixed', null, 3)$q$, :'other_event'), 'team size');
+do $$ begin
+  assert (select venue = 'Somewhere' and not is_active and categories = 1 from public.admin_events() where slug = 'other-1'), 'event saved';
+end $$;
+reset role;
+
+-- Ola runs KeltX only: numbers, members and swaps for Exeter, nothing elsewhere.
+select pg_temp.act_as(:'ola');
+set role authenticated;
+do $$ begin
+  assert (select array_agg(slug) from public.my_organisers()) = array['keltx'], 'Ola runs KeltX only';
+end $$;
+do $$ declare ev uuid := (select id from public.events where slug = 'keltx-exeter-2027'); begin
+  assert (select listings > 0 from public.owner_event_stats(ev)), 'owner sees numbers';
+  assert exists (select 1 from public.owner_members(ev) where first_name = 'Bea'), 'owner sees members';
+  assert exists (select 1 from public.owner_lockins(ev) where partner_full_name = 'Jess Example'), 'owner sees swap names';
+end $$;
+select pg_temp.expect_error(format('select * from public.owner_members(%L)', :'other_event'), 'don''t run this event');
+select pg_temp.expect_error(format('select * from public.owner_events(%L)', :'other_org'), 'don''t run');
+select pg_temp.expect_error('select * from public.admin_people()', 'Admins only');
+select pg_temp.expect_error(format('select public.admin_remove_category(%L)', :'other_cat'), 'Admins only');
+-- Owners change event details and the theme, with checks.
+select pg_temp.expect_error(
+  format($q$select public.owner_update_event(%L, 'KeltX Exeter', 'Westpoint', '2027-03-26', '2027-03-27', 'http://x.com', null)$q$, :'exeter'),
+  'https://');
+select pg_temp.expect_error(
+  format($q$select public.owner_update_event(%L, 'KeltX Exeter', 'Westpoint', '2027-03-26', '2027-03-27', null, '2027-04-01')$q$, :'exeter'),
+  'on or before the race');
+select public.owner_update_event(:'exeter', 'KeltX Exeter', 'Westpoint Arena, Exeter', '2027-03-26', '2027-03-27',
+  'https://www.tickettailor.com/events/keltxuk/2501166', '2027-03-18');
+select pg_temp.expect_error(format($q$select public.owner_set_theme(%L, 'pink')$q$, :'keltx'), 'Unknown theme');
+select public.owner_set_theme(:'keltx', 'daylight');
+reset role;
+-- Before hiding: Uma (spare spot) sees and matches Bea (needs a spot).
+select pg_temp.act_as(:'uma');
+set role authenticated;
+do $$ declare ev uuid := (select id from public.events where slug = 'keltx-exeter-2027'); begin
+  assert exists (select 1 from public.feed_entries where first_name = 'Bea'), 'Uma sees Bea';
+end $$;
+reset role;
+select e.id as ann_entry from public.entries e join public.events ev on ev.id = e.event_id
+where e.user_id = :'ann' and ev.slug = 'keltx-exeter-2027' \gset
+select e.id as bea_entry from public.entries e join public.events ev on ev.id = e.event_id
+where e.user_id = :'bea' and ev.slug = 'keltx-exeter-2027' \gset
+select set_config('test.ann_entry', :'ann_entry', false), set_config('test.bea_entry', :'bea_entry', false);
+do $$ begin
+  assert public.entry_fits(current_setting('test.ann_entry')::uuid, current_setting('test.bea_entry')::uuid),
+    'Bea fits Ann before hiding';
+end $$;
+-- Ola hides Bea from Exeter.
+select pg_temp.act_as(:'ola');
+set role authenticated;
+select public.owner_hide_member(:'exeter', :'bea', 'No-show last year');
+reset role;
+do $$ begin
+  assert (select name_change_cutoff = '2027-03-18' from public.events where slug = 'keltx-exeter-2027'), 'owner edit saved';
+  assert (select theme->>'preset' = 'daylight' and theme ? 'accent' from public.organisers where slug = 'keltx'), 'theme set, rest kept';
+end $$;
+
+do $$ begin
+  assert not public.entry_fits(current_setting('test.ann_entry')::uuid, current_setting('test.bea_entry')::uuid),
+    'hidden: no matches or alerts';
+end $$;
+-- Hidden: others can't see or request Bea at Exeter; Bea still sees her own listing.
+select pg_temp.act_as(:'uma');
+set role authenticated;
+do $$ declare ev uuid := (select id from public.events where slug = 'keltx-exeter-2027'); begin
+  assert not exists (select 1 from public.feed_entries where first_name = 'Bea'), 'hidden from browse';
+end $$;
+select pg_temp.expect_error(
+  format($q$select public.send_partner_request((select id from public.entries where user_id = %L))$q$, :'bea'),
+  'no longer exists');
+reset role;
+select e.id as eve_entry from public.entries e join public.events ev on ev.id = e.event_id
+where e.user_id = :'eve' and ev.slug = 'keltx-exeter-2027' \gset
+select pg_temp.act_as(:'bea');
+set role authenticated;
+do $$ begin assert exists (select 1 from public.feed_entries where first_name = 'Bea'), 'Bea sees her own listing'; end $$;
+select pg_temp.expect_error(format('select public.send_partner_request(%L)', :'eve_entry'), 'taken your listing off');
+reset role;
+
+-- Restore puts Bea back. Every change is in the log, for admins only.
+select pg_temp.act_as(:'ola');
+set role authenticated;
+select public.owner_unhide_member(:'exeter', :'bea');
+select pg_temp.expect_error('select * from public.admin_console_log()', 'Admins only');
+reset role;
+select pg_temp.act_as(:'uma');
+set role authenticated;
+do $$ begin assert exists (select 1 from public.feed_entries where first_name = 'Bea'), 'Bea restored'; end $$;
+reset role;
+select pg_temp.act_as(:'ria');
+set role authenticated;
+do $$ begin
+  assert (select count(*) from public.admin_console_log() where actor_email = 'ola@example.com'
+          and action in ('edit event', 'theme', 'hide member', 'restore member')) = 4, 'owner changes logged';
+end $$;
+select public.admin_remove_category(:'other_cat');
+select public.admin_remove_owner(:'keltx', 'ola@example.com');
+reset role;
+select pg_temp.act_as(:'ola');
+set role authenticated;
+do $$ begin assert (select count(*) from public.my_organisers()) = 0, 'removed owner sees nothing'; end $$;
+reset role;

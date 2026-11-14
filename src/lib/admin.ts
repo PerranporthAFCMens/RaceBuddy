@@ -44,3 +44,49 @@ export async function requireAdmin() {
   if (data !== true) notFound();
   return { user, supabase };
 }
+
+export type AdminOverview = {
+  organisers: number;
+  events: number;
+  people: number;
+  listings: number;
+  looking: number;
+  locked_in: number;
+  open_reports: number;
+  urgent_reports: number;
+  suspended: number;
+  banned: number;
+};
+
+export type AdminPersonRow = {
+  id: string;
+  first_name: string;
+  email: string;
+  age: number;
+  joined: string;
+  status: string;
+  listings: number;
+  reports_against: number;
+};
+
+export type AdminListing = {
+  event_name: string;
+  category_name: string | null;
+  has_ticket: boolean;
+  status: string;
+  hidden: boolean;
+  listed_at: string;
+};
+
+export type ConsoleLogRow = {
+  created_at: string;
+  actor_email: string | null;
+  organiser_name: string | null;
+  event_name: string | null;
+  action: string;
+  detail: string | null;
+};
+
+/** Date and time in UK time, for logs and admin screens. */
+export const ukTime = (iso: string) =>
+  new Date(iso).toLocaleString("en-GB", { timeZone: "Europe/London", dateStyle: "medium", timeStyle: "short" });

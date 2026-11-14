@@ -103,7 +103,7 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
         <p className="text-sm text-muted">Signed in as {user.email}</p>
         {isAdmin === true && (
           <Link href="/admin" className="btn-line w-full">
-            Moderation
+            Admin console
           </Link>
         )}
         <form action="/auth/signout" method="post">
