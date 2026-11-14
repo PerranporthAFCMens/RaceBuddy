@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,12 +36,12 @@ export type EvidenceRow = { sender_id: string | null; sender_name: string | null
 export const ADMIN_FILTERS = ["open", "underage", "closed"] as const;
 export type AdminFilter = (typeof ADMIN_FILTERS)[number];
 
-/** Admin screens only: anyone else gets "not found", so the page's existence isn't revealed. */
+/** Admin screens only: anyone else gets the "Wrong account" page, which says who they're signed in as. */
 export async function requireAdmin() {
   const user = await requireUser();
   const supabase = await createClient();
   const { data } = await supabase.rpc("is_admin");
-  if (data !== true) notFound();
+  if (data !== true) redirect("/wrong-account?for=admin");
   return { user, supabase };
 }
 

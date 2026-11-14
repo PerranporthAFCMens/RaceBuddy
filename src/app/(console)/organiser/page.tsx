@@ -10,7 +10,7 @@ const CONTACT_EMAIL = SAFETY_EMAIL ?? `hello@${brand.domain}`;
 import { getOwner, type OwnerEvent } from "@/lib/owner";
 import { setTheme } from "../actions";
 
-export const metadata = { title: "Event console" };
+export const metadata = { title: "Organiser view" };
 
 /** Every organiser this person runs, with its events and colour theme. */
 export default async function OrganiserHomePage() {

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { BottomNav } from "@/components/BottomNav";
-import { Logo } from "@/components/Logo";
+import { SiteHeader } from "@/components/SiteHeader";
 import { themeFromSetting } from "@/design/tokens";
 import { getBadges } from "@/lib/badges";
 import { getMyProfile, pickEvent, requireUser } from "@/lib/data";
@@ -9,15 +9,17 @@ import Link from "next/link";
 import { SubmitButton } from "@/components/SubmitButton";
 import { acceptTerms } from "./me/actions";
 import { createClient } from "@/lib/supabase/server";
+import { getRoles } from "@/lib/roles";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const user = await requireUser();
   const supabase = await createClient();
-  const [badges, { event }, { data: status }, profile] = await Promise.all([
+  const [badges, { event }, { data: status }, profile, roles] = await Promise.all([
     getBadges(supabase, user.id),
     pickEvent(undefined),
     supabase.from("account_status").select("status, message").eq("user_id", user.id).maybeSingle(),
     getMyProfile(),
+    getRoles(),
   ]);
   const needsTerms = Boolean(profile && profile.terms_version !== TERMS_VERSION);
   const notice = accountNotice(status as { status: string; message: string | null } | null);
@@ -25,11 +27,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const theme = themeFromSetting(event?.organiser?.theme);
   return (
     <div data-theme={theme} className="flex flex-1 flex-col bg-bg text-fg">
-      <header className="sticky top-0 z-20 border-b border-edge bg-bg pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto flex h-12 max-w-xl items-center justify-between px-4">
-          <Logo href="/browse" />
-        </div>
-      </header>
+      <SiteHeader roles={roles!} area="racer" />
       <main className="mx-auto w-full max-w-xl flex-1 px-4 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {notice && (
           <div role="status" className="mb-5 border border-danger p-3 text-sm">

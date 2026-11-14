@@ -22,8 +22,6 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
     getEvents(),
     supabase.rpc("my_blocks"),
   ]);
-  const [{ data: isAdmin }, { data: runs }] = await Promise.all([supabase.rpc("is_admin"), supabase.rpc("my_organisers")]);
-  const isOwner = ((runs as unknown[] | null) ?? []).length > 0;
   const blocked = (blockRows as { user_id: string; first_name: string }[] | null) ?? [];
   const welcome = params.welcome === "1" || !profile;
   const situation = isSituation(params.situation) ? params.situation : null;
@@ -102,16 +100,6 @@ export default async function MePage({ searchParams }: PageProps<"/me">) {
       {!welcome && (
       <section className="space-y-4 border-t border-edge pt-6">
         <p className="text-sm text-muted">Signed in as {user.email}</p>
-        {isAdmin === true && (
-          <Link href="/admin" className="btn-line w-full">
-            Admin console
-          </Link>
-        )}
-        {isOwner && (
-          <Link href="/organiser" className="btn-line w-full">
-            Event console
-          </Link>
-        )}
         <form action="/auth/signout" method="post">
           <button className="btn-line w-full">Sign out</button>
         </form>

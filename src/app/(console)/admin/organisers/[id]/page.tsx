@@ -33,7 +33,7 @@ export default async function AdminOrganiserPage({ params }: PageProps<"/admin/o
       <section className="space-y-3">
         <h2 className="font-bold uppercase">Owners</h2>
         <p className="text-sm text-muted">
-          Owners run this organiser&apos;s events in the Event console. They need an account first: add them by the
+          Owners run this organiser&apos;s events in the Organiser view. They need an account first: add them by the
           email they signed up with.
         </p>
         {organiser.owners.length === 0 ? (
