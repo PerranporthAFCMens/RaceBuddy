@@ -263,9 +263,9 @@ export default async function Styleguide({ searchParams }: PageProps<"/styleguid
           <ConsoleNav
             label="Example sections"
             items={[
-              { href: "/styleguide", label: "Overview" },
-              { href: "/styleguide/members", label: "Members" },
-              { href: "/styleguide/settings", label: "Settings" },
+              { href: "/styleguide", label: "Today" },
+              { href: "/styleguide/reports", label: "Reports", group: "Safety" },
+              { href: "/styleguide/people", label: "People", group: "Safety" },
             ]}
           />
           <HeadlineTile
