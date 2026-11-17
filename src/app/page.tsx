@@ -7,10 +7,18 @@ import { getEvents, getUser } from "@/lib/data";
 import { formatEventDates } from "@/lib/format";
 import { SITUATIONS } from "@/lib/matching";
 
+/** What the site is, in three short points. */
+const FACTS = [
+  ["For pairs and team races", "Doubles, pairs and relays at functional fitness races. Every racer is 18 or over."],
+  ["With or without a ticket", "Got a spot but no partner? Find someone to fill it. No ticket? Join a team that has a spot."],
+  ["We make the introduction", "You find each other and chat here. The ticket stays between you and the race organiser."],
+];
+
 const STEPS = [
-  ["Say what you need", "A partner for your spare spot, a spot on a team, or someone to enter with. Adults only."],
-  ["See who fits", "People who match your race, pace and area come first. We email you when someone new joins."],
+  ["Say what you need", "A partner for your spare spot, a spot on a team, or someone to enter with."],
+  ["See who fits", "Racers who match your event, pace and area come first. We email you when someone new joins."],
   ["Chat and lock in", "Chat opens once they accept your request. Then lock in your team before race day."],
+  ["Sort the ticket", "Ask the race organiser to change the name on the ticket. We don't handle tickets or payments."],
 ];
 
 export default async function Home() {
@@ -24,7 +32,9 @@ export default async function Home() {
         <Logo size="lg" href={null} arrows={false} />
         <p className="mt-4 text-xs uppercase tracking-brand text-muted">{brand.tagline}</p>
         <h1 className="mx-auto mt-8 max-w-xl font-display text-2xl uppercase sm:text-3xl">Lost your partner? Find a new one.</h1>
-        <p className="mx-auto mt-4 max-w-md text-muted">Doubles and relay partners for race day, with or without a ticket.</p>
+        <p className="mx-auto mt-4 max-w-md text-muted">
+          {brand.name} matches racers for doubles and relay fitness races. Lost your partner, or need a team? Find someone new to race with.
+        </p>
         <div className="mx-auto mt-8 grid max-w-md gap-3 text-left">
           <p className="text-center text-xs font-semibold uppercase tracking-wider text-muted">What are you looking for?</p>
           {SITUATIONS.map((s) => (
@@ -51,10 +61,24 @@ export default async function Home() {
 
       <ArrowDivider />
 
+      <section className="px-4 py-12">
+        <h2 className="heading mb-6">What {brand.name} does</h2>
+        <ul className="mx-auto grid max-w-xl gap-3 sm:grid-cols-3">
+          {FACTS.map(([title, body]) => (
+            <li key={title} className="card p-4">
+              <h3 className="text-sm font-bold uppercase tracking-wider">{title}</h3>
+              <p className="mt-2 text-sm text-muted">{body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <ArrowDivider />
+
       {events.length > 0 && (
         <>
           <section className="px-4 py-12">
-            <h2 className="heading mb-6">Races on {brand.name}</h2>
+            <h2 className="heading mb-6">Events on {brand.name}</h2>
             <ul className="mx-auto grid max-w-xl gap-3">
               {events.map((e) => (
                 <li key={e.id} className="card flex items-center justify-between gap-3 p-4">
@@ -97,7 +121,8 @@ export default async function Home() {
         {brand.name} is 18+ only.{" "}
         <Link href="/terms" className="inline-flex min-h-11 items-center px-1 underline">Terms</Link>{" "}
         <Link href="/privacy" className="inline-flex min-h-11 items-center px-1 underline">Privacy</Link>{" "}
-        <Link href="/safety" className="inline-flex min-h-11 items-center px-1 underline">Safety tips</Link>
+        <Link href="/safety" className="inline-flex min-h-11 items-center px-1 underline">Safety tips</Link>{" "}
+        <Link href="/login?door=organiser" className="inline-flex min-h-11 items-center px-1 underline">Organiser sign in</Link>
       </footer>
     </main>
   );
