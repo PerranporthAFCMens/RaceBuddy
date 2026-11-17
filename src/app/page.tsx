@@ -5,7 +5,6 @@ import { Logo } from "@/components/Logo";
 import { brand } from "@/design/brand";
 import { getEvents, getUser } from "@/lib/data";
 import { formatEventDates } from "@/lib/format";
-import { SAFETY_EMAIL } from "@/lib/legal";
 import { SITUATIONS } from "@/lib/matching";
 
 /** What the site is, in three short points. */
@@ -118,31 +117,12 @@ export default async function Home() {
         </ol>
       </section>
 
-      <ArrowDivider />
-
-      <section className="px-4 py-12 text-center">
-        <h2 className="heading mb-4">For race organisers</h2>
-        <p className="mx-auto max-w-md text-sm text-muted">
-          Organisers join by invite. You see which teams are at risk of losing a partner and which swaps are done. You
-          never see racers&apos; chats.
-        </p>
-        <div className="mx-auto mt-6 grid max-w-xs gap-3">
-          <Link href="/login?door=organiser" className="btn-white">
-            Organiser sign in
-          </Link>
-          {SAFETY_EMAIL && (
-            <a href={`mailto:${SAFETY_EMAIL}`} className="inline-flex min-h-11 items-center justify-center text-sm text-accent underline">
-              Run a race? Email {SAFETY_EMAIL}
-            </a>
-          )}
-        </div>
-      </section>
-
       <footer className="px-4 pb-10 text-center text-xs text-muted">
         {brand.name} is 18+ only.{" "}
         <Link href="/terms" className="inline-flex min-h-11 items-center px-1 underline">Terms</Link>{" "}
         <Link href="/privacy" className="inline-flex min-h-11 items-center px-1 underline">Privacy</Link>{" "}
-        <Link href="/safety" className="inline-flex min-h-11 items-center px-1 underline">Safety tips</Link>
+        <Link href="/safety" className="inline-flex min-h-11 items-center px-1 underline">Safety tips</Link>{" "}
+        <Link href="/login?door=organiser" className="inline-flex min-h-11 items-center px-1 underline">Organiser sign in</Link>
       </footer>
     </main>
   );

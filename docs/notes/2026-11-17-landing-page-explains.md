@@ -8,7 +8,7 @@ new app structure (thread "Rethink how YGIG fits together").
   ticket, and "we make the introduction" (the ticket stays between racers and
   the organiser).
 - How it works: fourth step "Sort the ticket" (no tickets or payments here).
-- New "For race organisers" band: invite only, teams at risk and swaps, never
-  chats; links to the organiser sign-in door and the hello@ email.
+- Organisers: only a small "Organiser sign in" link in the footer (Adam did
+  not want an organisers section on the page).
 - "Races on" is now "Events on". No organiser name is typed in the copy.
 - Home screenshot changes (deliberate); refresh it from the CI brand-report.
