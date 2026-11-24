@@ -26,6 +26,10 @@ tools, and whether developer tools could be used to read tables.
 - Supabase security advisors: the Supabase connector can't see the Race Buddy
   organisation, so they weren't run. Adam can see them in the dashboard under
   Advisors > Security Advisor.
-- `npm audit`: next 16.4.3 has moderate advisories fixed in 16.4.6. Most need
-  features this app doesn't use (`use cache`, Edge routes, self-hosting).
-  Worth a small upgrade PR on its own.
+
+## Also changed
+
+- `next` and `eslint-config-next` 16.4.3 -> 16.4.6. The security CI job's
+  `npm audit` started failing on 16.4.3 (moderate advisories, fixed in 16.4.6),
+  which blocks every PR. Most need features this app doesn't use (`use cache`,
+  Edge routes, self-hosting). `npm audit --omit=dev`: 0 vulnerabilities after.
