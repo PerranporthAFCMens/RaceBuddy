@@ -1,7 +1,9 @@
 name: Live check
 
-# Runs the full live flow test (scripts/live-check.mts, about 50 checks) against
-# the real Supabase project with throwaway users, then deletes them.
+# Runs the full live flow test (scripts/live-check.mts, about 70 checks) and the
+# exposure check (scripts/exposure-check.mts: what someone with browser
+# developer tools and the public key can reach, about 280 checks) against the
+# real Supabase project with throwaway users, then deletes them.
 #   - after every release (push to main)
 #   - every day at 06:00 UTC
 #   - by hand: Actions > Live check > Run workflow
@@ -57,6 +59,9 @@ jobs:
       - name: Run the live check
         if: steps.keys.outputs.ready == 'true'
         run: npm run test:live
+      - name: Run the exposure check
+        if: steps.keys.outputs.ready == 'true'
+        run: npm run test:exposure
 
       - name: Raise the alarm
         if: failure()
